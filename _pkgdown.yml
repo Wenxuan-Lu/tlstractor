@@ -1,0 +1,17 @@
+url: https://wenxuan-lu.github.io/tlstractor/
+template:
+  bootstrap: 5
+
+reference:
+  - title: Extract tracts and ancestry dosages
+    contents:
+      - extract_tracts
+      - extract_tracts_flare
+      - convert_gds_to_txt
+      - convert_txt_to_gds
+  - title: Munge external GWAS summary statistics
+    contents:
+      - munge_sumstats
+  - title: Run TLS-Tractor
+    contents:
+      - tlstractor

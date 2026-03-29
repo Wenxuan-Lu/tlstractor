@@ -36,3 +36,6 @@ vignettes/*.R
 .vscode/
 .idea/
 inst/doc
+docs
+/doc/
+/Meta/

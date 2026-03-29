@@ -22,9 +22,9 @@ library(tlstractor)
 
 This tutorial goes through the end-to-end pipeline to:
 
-1. extract local ancestry tracts
-2. munge external GWAS summary statistics
-3. run TLS-Tractor
+1.  extract tracts and ancestry dosages
+2.  munge external GWAS summary statistics
+3.  run TLS-Tractor
 
 Below, we walk through a step-by-step example for a continuous phenotype, then provide a runnable short script for a binary phenotype.
 
@@ -32,10 +32,7 @@ Below, we walk through a step-by-step example for a continuous phenotype, then p
 
 The examples in this tutorial use simulated files bundled with the package under `inst/extdata/`.
 
-The simulated data include genotype, covariates, and phenotype for unrelated two-way admixed individuals.
-Individuals are split into non-overlapping internal (`n = 100`) and external (`n = 8000`) cohorts.
-In the external cohort, standard GWAS models (`y ~ total genotype dosage + covariates`) are used to generate external GWAS summary statistics.
-The internal cohort provides individual-level covariates, phenotype data, and local ancestry inference (LAI) results in both RFMix2/Gnomix and FLARE formats.
+The simulated data include genotype, covariates, and phenotype for unrelated two-way admixed individuals. Individuals are split into non-overlapping internal (`n = 100`) and external (`n = 8000`) cohorts. In the external cohort, standard GWAS models (`y ~ total genotype dosage + covariates`) are used to generate external GWAS summary statistics. The internal cohort provides individual-level covariates, phenotype data, and local ancestry inference (LAI) results in both RFMix2/Gnomix and FLARE formats.
 
 ```{r example-data-dir}
 # Get data directory path
@@ -49,30 +46,30 @@ list.files(data_dir, full.names = FALSE)
 
 The linear example (`simulate_linear.*`) includes:
 
-1. Phased genotype inputs and local ancestry inference outputs for the RFMix2/Gnomix style pipeline for the internal cohort:
-   - `simulate_linear.phased.vcf`
-   - `simulate_linear.msp.tsv`
-   - Phased VCF stores genotypes in the `GT` field; MSP stores local ancestry labels for each haplotype window.
-2. Local ancestry inference output from FLARE for the internal cohort:
-   - `simulate_linear.flare.vcf`
-   - VCF with `GT:AN1:AN2` format where `GT` denotes phased genotypes and `AN1` and `AN2` encode local ancestry labels for each haplotype.
-3. Individual-level phenotype and covariates for the internal cohort:
-   - `simulate_linear.pheno.txt`
-   - `simulate_linear.covar.txt`
-4. External GWAS summary statistics:
-   - `simulate_linear.external_gwas_sumstats.txt`
-   - Columns include `CHR POS ID REF ALT BETA SE AF N`.
+1.  Phased genotype inputs and local ancestry inference outputs for the RFMix2/Gnomix style pipeline for the internal cohort:
+    -   `simulate_linear.phased.vcf`
+    -   `simulate_linear.msp.tsv`
+    -   Phased VCF stores genotypes in the `GT` field; MSP stores local ancestry labels for each haplotype window.
+2.  Local ancestry inference output from FLARE for the internal cohort:
+    -   `simulate_linear.flare.vcf`
+    -   VCF with `GT:AN1:AN2` format where `GT` denotes phased genotypes and `AN1` and `AN2` encode local ancestry labels for each haplotype.
+3.  Individual-level phenotype and covariates for the internal cohort:
+    -   `simulate_linear.pheno.txt`
+    -   `simulate_linear.covar.txt`
+4.  External GWAS summary statistics:
+    -   `simulate_linear.external_gwas_sumstats.txt`
+    -   Columns include `CHR POS ID REF ALT BETA SE AF N`.
 
 ## Binary case inputs
 
 The binary simulation has the same file layout with prefix `simulate_binary`:
 
-1. `simulate_binary.phased.vcf`
-2. `simulate_binary.msp.tsv`
-3. `simulate_binary.flare.vcf`
-4. `simulate_binary.pheno.txt`
-5. `simulate_binary.covar.txt`
-6. `simulate_binary.external_gwas_sumstats.txt`
+1.  `simulate_binary.phased.vcf`
+2.  `simulate_binary.msp.tsv`
+3.  `simulate_binary.flare.vcf`
+4.  `simulate_binary.pheno.txt`
+5.  `simulate_binary.covar.txt`
+6.  `simulate_binary.external_gwas_sumstats.txt`
 
 # Step 1: Extract tracts and convert formats
 
@@ -95,12 +92,12 @@ Second, use **one** extractor based on your LAI format. If you have RFMix2/Gnomi
 
 Use **`extract_tracts()`** when your local ancestry inference output is a phased VCF plus an MSP file.
 
-- `vcf_path`: phased VCF input with phased genotypes (`GT` field required to be the first FORMAT field)
-- `msp_path`: MSP input with local ancestry labels
-- `num_ancs`: number of ancestral populations in the dataset
-- `output_dir`: directory for output files (`NULL` uses the input VCF directory)
-- `output_formats = "gds"`: write GDS output required for downstream TLS-Tractor steps
-- `chunk_size`: number of variants processed per chunk (default: 1024L). Larger values can improve speed but increase memory usage.
+-   `vcf_path`: phased VCF input with phased genotypes (`GT` field required to be the first FORMAT field)
+-   `msp_path`: MSP input with local ancestry labels
+-   `num_ancs`: number of ancestral populations in the dataset
+-   `output_dir`: directory for output files (`NULL` uses the input VCF directory)
+-   `output_formats = "gds"`: write GDS output required for downstream TLS-Tractor steps
+-   `chunk_size`: number of variants processed per chunk (default: 1024L). Larger values can improve speed but increase memory usage.
 
 The GDS output path is `<prefix>.gds` within `output_dir`, where `prefix` is the basename of the input VCF file `vcf_path` without `.vcf` or `.vcf.gz`.
 
@@ -121,11 +118,11 @@ gds_path <- file.path(output_dir_tracts, "simulate_linear.phased.gds")
 
 Use **`extract_tracts_flare()`** when your local ancestry inference output is a FLARE VCF.
 
-- `vcf_path`: FLARE VCF input with `GT:AN1:AN2` format
-- `num_ancs`: number of ancestral populations in the dataset
-- `output_dir`: directory for output files (`NULL` uses the input VCF directory)
-- `output_formats = "gds"`: write GDS output required for downstream TLS-Tractor steps
-- `chunk_size`: number of variants processed per chunk (default: 1024L). Larger values can improve speed but increase memory usage.
+-   `vcf_path`: FLARE VCF input with `GT:AN1:AN2` format
+-   `num_ancs`: number of ancestral populations in the dataset
+-   `output_dir`: directory for output files (`NULL` uses the input VCF directory)
+-   `output_formats = "gds"`: write GDS output required for downstream TLS-Tractor steps
+-   `chunk_size`: number of variants processed per chunk (default: 1024L). Larger values can improve speed but increase memory usage.
 
 The GDS output path is `<prefix>.gds` within `output_dir`, where `prefix` is the basename of the input VCF file `vcf_path` without `.vcf` or `.vcf.gz`.
 
@@ -145,13 +142,13 @@ gds_path <- file.path(output_dir_tracts, "simulate_linear.flare.gds")
 
 After extraction, the GDS file stores local ancestry and risk allele information in a hierarchical structure optimized for analysis. You can think of it as a compact container with two types of content:
 
-1. sample IDs and SNP metadata that describe samples and variants
-2. ancestry-specific arrays for risk allele dosages and haplotype counts
+1.  sample IDs and SNP metadata that describe samples and variants
+2.  ancestry-specific arrays for risk allele dosages and haplotype counts
 
 In this structure,
 
-- `dosage` contains the number of copies of the risk allele from each ancestry
-- `hapcount` contains the number of haplotypes from each ancestry
+-   `dosage` contains the number of copies of the risk allele from each ancestry
+-   `hapcount` contains the number of haplotypes from each ancestry
 
 ```{r examine-gds-structure}
 # Open the GDS file in read-only mode
@@ -245,22 +242,20 @@ gdsfmt::closefn.gds(gds)
 
 **Benefits of GDS format:**
 
-- **Memory efficient**: Uses a compressed binary representation that is typically much smaller than `.vcf.gz` or `.txt.gz`, while enabling on-demand access without loading the full dataset into memory
-- **Fast access**: Supports efficient sequential and indexed random access across both variants and samples
-- **Portable**: Stores genotypes, local ancestry, and meta data in a single, self-contained file
-- **Scalable**: Designed for large-scale genomic datasets, enabling efficient analysis of genome-wide data in large cohorts
+-   **Memory efficient**: Uses a compressed binary representation that is typically much smaller than `.vcf.gz` or `.txt.gz`, while enabling on-demand access without loading the full dataset into memory
+-   **Fast access**: Supports efficient sequential and indexed random access across both variants and samples
+-   **Portable**: Stores genotypes, local ancestry, and meta data in a single, self-contained file
+-   **Scalable**: Designed for large-scale genomic datasets, enabling efficient analysis of genome-wide data in large cohorts
 
 ## Additional output format options
 
-The `extract_tracts()` and `extract_tracts_flare()` functions support multiple output formats via the `output_formats` argument.
-Though **GDS is the only format required for downstream TLS-Tractor steps**, you can optionally export to text or VCF formats for inspection, sharing, or use in external tools.
+The `extract_tracts()` and `extract_tracts_flare()` functions support multiple output formats via the `output_formats` argument. Though **GDS is the only format required for downstream TLS-Tractor steps**, you can optionally export to text or VCF formats for inspection, sharing, or use in external tools.
 
-- **`"gds"`** (default): Genomic Data Structure format—binary, compressed, optimized for fast access and scalability (required for downstream TLS-Tractor steps).
-- **`"txt"`** and **`"txt.gz"`**: Plain-text and gzip-compressed text format. For each ancestry, two files are created: `<prefix>.anc{k}.dosage.txt(.gz)` and `<prefix>.anc{k}.hapcount.txt(.gz)`, where `<prefix>` is the basename of the input VCF file `vcf_path` without `.vcf` or `.vcf.gz`. The former contains the number of copies of the risk allele from each ancestry, and the latter contains the number of haplotypes from each ancestry. Output files have columns `CHROM POS ID REF ALT` followed by one column per sample.
-- **`"vcf"`** and **`"vcf.gz"`**: VCF format. For each ancestry, one file is created: `<prefix>.anc{k}.vcf(.gz)` with `FORMAT=GT`, where `<prefix>` is the basename of the input VCF file `vcf_path` without `.vcf` or `.vcf.gz`. Haplotypes not assigned to that ancestry are written as `.`.
+-   **`"gds"`** (default): Genomic Data Structure format—binary, compressed, optimized for fast access and scalability (required for downstream TLS-Tractor steps).
+-   **`"txt"`** and **`"txt.gz"`**: Plain-text and gzip-compressed text format. For each ancestry, two files are created: `<prefix>.anc{k}.dosage.txt(.gz)` and `<prefix>.anc{k}.hapcount.txt(.gz)`, where `<prefix>` is the basename of the input VCF file `vcf_path` without `.vcf` or `.vcf.gz`. The former contains the number of copies of the risk allele from each ancestry, and the latter contains the number of haplotypes from each ancestry. Output files have columns `CHROM POS ID REF ALT` followed by one column per sample.
+-   **`"vcf"`** and **`"vcf.gz"`**: VCF format. For each ancestry, one file is created: `<prefix>.anc{k}.vcf(.gz)` with `FORMAT=GT`, where `<prefix>` is the basename of the input VCF file `vcf_path` without `.vcf` or `.vcf.gz`. Haplotypes not assigned to that ancestry are written as `.`.
 
-You can request multiple formats in a single run by passing a vector (e.g., `output_formats = c("gds", "txt.gz", "vcf.gz")`).
-Note that if you request both compressed and uncompressed versions of the same format (e.g., both `"txt"` and `"txt.gz"`), only the compressed version will be written to disk to save space.
+You can request multiple formats in a single run by passing a vector (e.g., `output_formats = c("gds", "txt.gz", "vcf.gz")`). Note that if you request both compressed and uncompressed versions of the same format (e.g., both `"txt"` and `"txt.gz"`), only the compressed version will be written to disk to save space.
 
 Example: extract to both GDS and compressed text in one call using the FLARE VCF input.
 
@@ -284,18 +279,18 @@ extract_tracts_flare(
 
 After extracting tracts, you can convert between GDS and text formats using the following functions:
 
-- **`convert_txt_to_gds()`**: Converts text format (from a previous extraction or external source) to GDS format. Useful for reprocessing data or constructing a GDS from manually formatted tract files.
-  - `input_prefix`: prefix of input text files, without `.anc{k}.dosage.txt(.gz)` or `.anc{k}.hapcount.txt(.gz)`
-  - `num_ancs`: number of ancestral populations in the dataset
-  - `output_prefix`: prefix for the output `.gds` file, without extension (`NULL` uses `input_prefix`)
-  - `chunk_size`: number of variants processed per chunk (default: 1024L). Larger values can improve speed but increase memory usage.
-  - The GDS output will be `<output_prefix>.gds`.
-- **`convert_gds_to_txt()`**: Exports GDS data to plain-text format for inspection, sharing, or use in external tools.
-  - `gds_path`: input GDS file path
-  - `output_prefix`: prefix for output text files (`NULL` uses the input GDS filename prefix in the same directory)
-  - `output_format`: output text format, either `"txt"` or `"txt.gz"` (default: `"txt.gz"`)
-  - `chunk_size`: number of variants processed per chunk (default: 1024L). Larger values can improve speed but increase memory usage.
-  - The output will include two files per ancestry: `<output_prefix>.anc{k}.dosage.txt(.gz)` and `<output_prefix>.anc{k}.hapcount.txt(.gz)`.
+-   **`convert_txt_to_gds()`**: Converts text format (from a previous extraction or external source) to GDS format. Useful for reprocessing data or constructing a GDS from manually formatted tract files.
+    -   `input_prefix`: prefix of input text files, without `.anc{k}.dosage.txt(.gz)` or `.anc{k}.hapcount.txt(.gz)`
+    -   `num_ancs`: number of ancestral populations in the dataset
+    -   `output_prefix`: prefix for the output `.gds` file, without extension (`NULL` uses `input_prefix`)
+    -   `chunk_size`: number of variants processed per chunk (default: 1024L). Larger values can improve speed but increase memory usage.
+    -   The GDS output will be `<output_prefix>.gds`.
+-   **`convert_gds_to_txt()`**: Exports GDS data to plain-text format for inspection, sharing, or use in external tools.
+    -   `gds_path`: input GDS file path
+    -   `output_prefix`: prefix for output text files (`NULL` uses the input GDS filename prefix in the same directory)
+    -   `output_format`: output text format, either `"txt"` or `"txt.gz"` (default: `"txt.gz"`)
+    -   `chunk_size`: number of variants processed per chunk (default: 1024L). Larger values can improve speed but increase memory usage.
+    -   The output will include two files per ancestry: `<output_prefix>.anc{k}.dosage.txt(.gz)` and `<output_prefix>.anc{k}.hapcount.txt(.gz)`.
 
 ```{r convert-formats, eval = FALSE}
 # TXT (or txt.gz) -> GDS
@@ -332,47 +327,46 @@ Use `?` to inspect documentation quickly.
 
 # Step 2: Munge external GWAS summary statistics
 
-After creating the GDS file from individual-level data in the main/internal study, use `munge_sumstats()` to harmonize external GWAS summary statistics with the GDS file.
-The function performs quality control (QC), aligns variants between the summary statistics and the GDS file using either `CHR-POS` or `ID`, and outputs munged summary statistics restricted to SNPs present in both datasets.
+After creating the GDS file from individual-level data in the main/internal study, use `munge_sumstats()` to harmonize external GWAS summary statistics with the GDS file. The function performs quality control (QC), aligns variants between the summary statistics and the GDS file using either `CHR-POS` or `ID`, and outputs munged summary statistics restricted to SNPs present in both datasets.
 
 Expected input format for GWAS summary statistics:
 
-- The input file should be tab-delimited.
-- Required columns for `match_by = "CHR-POS"`: chromosome, position, reference allele, alternative allele, effect size, and standard error (default column names: `CHR`, `POS`, `REF`, `ALT`, `BETA`, `SE`).
-- Required columns for `match_by = "ID"`: variant ID, reference allele, alternative allele, effect size, and standard error (default column names: `ID`, `REF`, `ALT`, `BETA`, `SE`).
-- Optional column: allele frequency (default `AF`), if available.
-- Additional columns are allowed but will be ignored in the munging process.
-- For `match_by = "CHR-POS"`, accepted chromosome formats are autosomes only: `1-22`, `01-22`, `chr1-chr22`, or `chr01-chr22` (case-insensitive).
-- The `BETA` column should represent the effect size estimate for the alternative allele (log odds ratio for logistic regression or linear coefficient for linear regression), and the `SE` column should contain the corresponding standard error.
+-   The input file should be tab-delimited.
+-   Required columns for `match_by = "CHR-POS"`: chromosome, position, reference allele, alternative allele, effect size, and standard error (default column names: `CHR`, `POS`, `REF`, `ALT`, `BETA`, `SE`).
+-   Required columns for `match_by = "ID"`: variant ID, reference allele, alternative allele, effect size, and standard error (default column names: `ID`, `REF`, `ALT`, `BETA`, `SE`).
+-   Optional column: allele frequency (default `AF`), if available.
+-   Additional columns are allowed but will be ignored in the munging process.
+-   For `match_by = "CHR-POS"`, accepted chromosome formats are autosomes only: `1-22`, `01-22`, `chr1-chr22`, or `chr01-chr22` (case-insensitive).
+-   The `BETA` column should represent the effect size estimate for the alternative allele (log odds ratio for logistic regression or linear coefficient for linear regression), and the `SE` column should contain the corresponding standard error.
 
 If the column names in your summary statistics file differ from the defaults, you can specify the column names using the function arguments: `chr_col`, `pos_col`, `id_col`, `ref_col`, `alt_col`, `beta_col`, `se_col`, and `af_col`.
 
 QC performed by `munge_sumstats()` on GWAS summary statistics (applied in order):
 
-1. REF/ALT checks: keep biallelic SNPs with single-nucleotide `A/C/G/T` alleles and remove the rest
-2. optional removal of ambiguous SNPs (`A/T`, `T/A`, `C/G`, `G/C`)
-3. autosome restriction to chromosomes `1-22` when `match_by = "CHR-POS"`
-4. `POS > 0` when `match_by = "CHR-POS"`
-5. non-missing and non-empty `ID` when `match_by = "ID"`
-6. duplicate removal by key: unique `(CHR, POS)` when `match_by = "CHR-POS"`, or unique `ID` when `match_by = "ID"`
-7. effect/SE checks: `BETA != NA` and `SE > 0`
-8. optional `AF` range check (`0 < AF < 1`) when `AF` is provided
-9. allele flipping when needed to align with GDS reference allele definition
+1.  REF/ALT checks: keep biallelic SNPs with single-nucleotide `A/C/G/T` alleles and remove the rest
+2.  optional removal of ambiguous SNPs (`A/T`, `T/A`, `C/G`, `G/C`)
+3.  autosome restriction to chromosomes `1-22` when `match_by = "CHR-POS"`
+4.  `POS > 0` when `match_by = "CHR-POS"`
+5.  non-missing and non-empty `ID` when `match_by = "ID"`
+6.  duplicate removal by key: unique `(CHR, POS)` when `match_by = "CHR-POS"`, or unique `ID` when `match_by = "ID"`
+7.  effect/SE checks: `BETA != NA` and `SE > 0`
+8.  optional `AF` range check (`0 < AF < 1`) when `AF` is provided
+9.  allele flipping when needed to align with GDS reference allele definition
 
 Output format for munged summary statistics:
 
-- The output file is tab-delimited.
-- Output columns are standardized as `CHR`, `POS`, `ID`, `REF`, `ALT`, `BETA`, `SE`, `AF` (optional), and `GDS_ID`.
-- The output is aligned to GDS metadata (chromosome, position, variant ID, and alleles) so variant definitions are consistent with the GDS file.
-- `GDS_ID` is the 1-based variant index in the GDS file to match variants in the summary statistics with variants in the GDS file. It is used by `tlstractor()` in Step 3.
+-   The output file is tab-delimited.
+-   Output columns are standardized as `CHR`, `POS`, `ID`, `REF`, `ALT`, `BETA`, `SE`, `AF` (optional), and `GDS_ID`.
+-   The output is aligned to GDS metadata (chromosome, position, variant ID, and alleles) so variant definitions are consistent with the GDS file.
+-   `GDS_ID` is the 1-based variant index in the GDS file to match variants in the summary statistics with variants in the GDS file. It is used by `tlstractor()` in Step 3.
 
 In the example call below:
 
-- `gds_path`: path to the GDS file generated in Step 1
-- `sumstats_path`: path to the external GWAS summary statistics file
-- `match_by`: method to align variants between summary statistics and GDS file, either `"CHR-POS"` (default) or `"ID"`
-- `remove_ambiguous`: whether to remove ambiguous SNPs (default: `TRUE`)
-- `output_path`: output path for munged summary statistics (`NULL` uses `<sumstats_prefix>_munged.txt` in the same directory as `sumstats_path`, where `<sumstats_prefix>` is the input summary statistics filename without extension)
+-   `gds_path`: path to the GDS file generated in Step 1
+-   `sumstats_path`: path to the external GWAS summary statistics file
+-   `match_by`: method to align variants between summary statistics and GDS file, either `"CHR-POS"` (default) or `"ID"`
+-   `remove_ambiguous`: whether to remove ambiguous SNPs (default: `TRUE`)
+-   `output_path`: output path for munged summary statistics (`NULL` uses `<sumstats_prefix>_munged.txt` in the same directory as `sumstats_path`, where `<sumstats_prefix>` is the input summary statistics filename without extension)
 
 ```{r munge-summary-stats}
 # Create output directory for munged summary statistics
@@ -415,34 +409,28 @@ Use `?` to inspect full documentation.
 ?tlstractor::munge_sumstats
 ```
 
-
 # Step 3: Run TLS-Tractor
 
-With the individual-level GDS file and phenotype/covariates from the internal study, and the munged external GWAS summary statistics, we are ready to run TLS-Tractor.
-TLS-Tractor estimates ancestry-specific genetic effects with optional local-ancestry adjustment.
-The key advantage is that although external summary statistics come from standard GWAS models, TLS-Tractor strategically leverages them via transfer learning to obtain unbiased and efficient estimates for ancestry-specific parameters.
+With the individual-level GDS file and phenotype/covariates from the internal study, and the munged external GWAS summary statistics, we are ready to run TLS-Tractor. TLS-Tractor estimates ancestry-specific genetic effects with optional local-ancestry adjustment. The key advantage is that although external summary statistics come from standard GWAS models, TLS-Tractor strategically leverages them via transfer learning to obtain unbiased and efficient estimates for ancestry-specific parameters.
 
-Model assumptions for TLS-Tractor:
-- Unrelated individuals in the internal cohort
-- No sample overlap between internal and external cohorts
-- **Transportability assumption**: comparable admixture profiles across cohorts (e.g., similar ancestral populations and proportions). This assumption is testable in practice, and a concrete diagnostic workflow is provided in the [Assumption checking](#assumption-checking) subsection below. Looking ahead, to relax this assumption, the next version of TLS-Tractor is planned to support settings where internal and external cohorts share the same ancestral populations but have different ancestry proportions.
+Model assumptions for TLS-Tractor: - Unrelated individuals in the internal cohort - No sample overlap between internal and external cohorts - **Transportability assumption**: comparable admixture profiles across cohorts (e.g., similar ancestral populations and proportions). This assumption is testable in practice, and a concrete diagnostic workflow is provided in the [Assumption checking](#assumption-checking) subsection below. Looking ahead, to relax this assumption, the next version of TLS-Tractor is planned to support settings where internal and external cohorts share the same ancestral populations but have different ancestry proportions.
 
 ## Input parameters
 
-- **`gds_path`**: Path to the GDS file generated in Step 1, containing local ancestry and risk allele dosage information for the internal cohort.
-- **`sumstats_path`**: Path to the munged external GWAS summary statistics file generated in Step 2, which must be harmonized and aligned with the GDS file.
-- **`method`**: Choose `"linear"` for continuous phenotypes or `"logistic"` for binary phenotypes.
-- **`cond_local`**: Set to `TRUE` to condition on local-ancestry terms, which is recommended for most admixed population studies. This keeps interpretation of ancestry-specific SNP effects consistent with interpretation of the marginal effect in single-ancestry GWAS. Set to `FALSE` to estimate ancestry-specific SNP effects without local-ancestry adjustment, which can increase power but may be more susceptible to confounding by local ancestry.
-- **`pheno_path`, `pheno_id_col`, `pheno_col`**: Specify the phenotype file, along with the column containing sample IDs and the column containing the phenotype values. Sample IDs must match between the GDS file and phenotype file, and only the intersecting samples will be used.
-- **`covar_path`, `covar_id_col`, `covar_cols`**: Optionally provide a covariate file, the column containing sample IDs, and a vector of columns to include as covariates (e.g., PCs, age, sex). If covariates are supplied, sample IDs must match between the GDS file and covariate files, and only the intersecting samples will be used. If no covariates are needed, set `covar_path = NULL`.
-- **`output_prefix`**: Output path prefix for result files. TLS-Tractor writes the main result to `<output_prefix>.txt.gz` and may write `<output_prefix>.excluded_samples.txt` when samples are dropped from the GDS file during intersection/filtering.
-- **`scratch_dir`**: Optional directory for temporary per-task files before merge. If `NULL` (default), a run-specific temporary directory is created under `dirname(output_prefix)` with name `<basename(output_prefix)>_<pid>_<YYYYmmdd_HHMMSS>_tmp`. Temporary files are deleted upon successful completion. The directory is removed only if it is created by the function.
-- **`snp_start`**: 1-based starting SNP index in the GDS file (default `1L`). Useful when analyzing a subset of SNPs.
-- **`snp_count`**: Number of SNPs to process from `snp_start`. If `NULL` (default), analysis continues to the end of the GDS file.
-- **`n_cores`**: Number of CPU cores to use for parallelization (default `1L`). Increase to speed up runtime but require more memory.
-- **`chunk_size`**: Number of variants processed per chunk per core (default `1024L`). Larger values can improve speed but increase memory usage.
-- **`local_ancestry_mac_threshold`**: Ancestry-specific minor-allele count threshold (default `20L`). SNPs with any ancestry-specific MAC below this threshold are skipped and returned with `NA` for inferential columns.
-- **`use_fast_version`**: Defaults to `TRUE` (recommended, especially for large datasets). In fast mode, TLS-Tractor assumes that the estimated non-genetic covariate effects from the null model (`phenotype ~ covariates`) are close to those from the full standard GWAS model (`phenotype ~ SNP dosage + covariates`) for any single SNP, so that estimated covariate effects from the null model can be reused across variants to reduce computation. The fast mode is substantially faster with little loss of accuracy. Set to `FALSE` to force full per-variant fitting when you want maximum robustness. If no covariates are provided, fast mode is automatically disabled.
+-   **`gds_path`**: Path to the GDS file generated in Step 1, containing local ancestry and risk allele dosage information for the internal cohort.
+-   **`sumstats_path`**: Path to the munged external GWAS summary statistics file generated in Step 2, which must be harmonized and aligned with the GDS file.
+-   **`method`**: Choose `"linear"` for continuous phenotypes or `"logistic"` for binary phenotypes.
+-   **`cond_local`**: Set to `TRUE` to condition on local-ancestry terms, which is recommended for most admixed population studies. This keeps interpretation of ancestry-specific SNP effects consistent with interpretation of the marginal effect in single-ancestry GWAS. Set to `FALSE` to estimate ancestry-specific SNP effects without local-ancestry adjustment, which can increase power but may be more susceptible to confounding by local ancestry.
+-   **`pheno_path`, `pheno_id_col`, `pheno_col`**: Specify the phenotype file, along with the column containing sample IDs and the column containing the phenotype values. Sample IDs must match between the GDS file and phenotype file, and only the intersecting samples will be used.
+-   **`covar_path`, `covar_id_col`, `covar_cols`**: Optionally provide a covariate file, the column containing sample IDs, and a vector of columns to include as covariates (e.g., PCs, age, sex). If covariates are supplied, sample IDs must match between the GDS file and covariate files, and only the intersecting samples will be used. If no covariates are needed, set `covar_path = NULL`.
+-   **`output_prefix`**: Output path prefix for result files. TLS-Tractor writes the main result to `<output_prefix>.txt.gz` and may write `<output_prefix>.excluded_samples.txt` when samples are dropped from the GDS file during intersection/filtering.
+-   **`scratch_dir`**: Optional directory for temporary per-task files before merge. If `NULL` (default), a run-specific temporary directory is created under `dirname(output_prefix)` with name `<basename(output_prefix)>_<pid>_<YYYYmmdd_HHMMSS>_tmp`. Temporary files are deleted upon successful completion. The directory is removed only if it is created by the function.
+-   **`snp_start`**: 1-based starting SNP index in the GDS file (default `1L`). Useful when analyzing a subset of SNPs.
+-   **`snp_count`**: Number of SNPs to process from `snp_start`. If `NULL` (default), analysis continues to the end of the GDS file.
+-   **`n_cores`**: Number of CPU cores to use for parallelization (default `1L`). Increase to speed up runtime but require more memory.
+-   **`chunk_size`**: Number of variants processed per chunk per core (default `1024L`). Larger values can improve speed but increase memory usage.
+-   **`local_ancestry_mac_threshold`**: Ancestry-specific minor-allele count threshold (default `20L`). SNPs with any ancestry-specific MAC below this threshold are skipped and returned with `NA` for inferential columns.
+-   **`use_fast_version`**: Defaults to `TRUE` (recommended, especially for large datasets). In fast mode, TLS-Tractor assumes that the estimated non-genetic covariate effects from the null model (`phenotype ~ covariates`) are close to those from the full standard GWAS model (`phenotype ~ SNP dosage + covariates`) for any single SNP, so that estimated covariate effects from the null model can be reused across variants to reduce computation. The fast mode is substantially faster with little loss of accuracy. Set to `FALSE` to force full per-variant fitting when you want maximum robustness. If no covariates are provided, fast mode is automatically disabled.
 
 Run TLS-Tractor using internal individual-level data and the munged external summary statistics:
 
@@ -472,33 +460,29 @@ tlstractor(
 
 TLS-Tractor outputs a summary statistics file `<output_prefix>.txt.gz` with the following columns:
 
-1. **Variant metadata**:
-   - `CHROM`: Chromosome
-   - `POS`: Base-pair position
-   - `ID`: Variant ID
-   - `REF`: Reference allele
-   - `ALT`: Alternate allele
-   - `main_N`: Number of samples analyzed in the internal/main study
-
-2. **Frequency and ancestry summaries**:
-   - `AF`: Overall allele frequency (from internal study)
-   - `AF_anc*`: Ancestry-specific allele frequency for each ancestry (e.g., `AF_anc0`, `AF_anc1` for two-way admixture)
-   - `LAprop_anc*`: Local ancestry proportion for each ancestry
-
-3. **Analysis metadata**:
-   - `has_sumstats`: Logical indicator of whether external summary statistics are available for this variant. Variants without summary statistics are analyzed using internal data alone.
-   - `fallback_used`: Logical indicator of whether QR decomposition fallback was used during estimation; when `TRUE`, results may have reduced numerical stability and should be interpreted with caution
-
-4. **Association results** (main results):
-   - `joint_pval`: Joint p-value for testing all ancestry-specific SNP dosage effects
-   - `beta_anc*`: Effect size (log odds for logistic, linear coefficient for linear) for each ancestry
-   - `se_anc*`: Standard error of the effect size for each ancestry
-   - `pval_anc*`: P-value for each ancestry-specific effect
-
-5. **Local ancestry effects** (when `cond_local = TRUE`):
-   - `LAeff_anc*`: Effect size (log odds for logistic, linear coefficient for linear) of the local ancestry term for each ancestry
-   - `LAse_anc*`: Standard error of the local ancestry effect for each ancestry
-   - `LApval_anc*`: P-value for the local ancestry effect for each ancestry
+1.  **Variant metadata**:
+    -   `CHROM`: Chromosome
+    -   `POS`: Base-pair position
+    -   `ID`: Variant ID
+    -   `REF`: Reference allele
+    -   `ALT`: Alternate allele
+    -   `main_N`: Number of samples analyzed in the internal/main study
+2.  **Frequency and ancestry summaries**:
+    -   `AF`: Overall allele frequency (from internal study)
+    -   `AF_anc*`: Ancestry-specific allele frequency for each ancestry (e.g., `AF_anc0`, `AF_anc1` for two-way admixture)
+    -   `LAprop_anc*`: Local ancestry proportion for each ancestry
+3.  **Analysis metadata**:
+    -   `has_sumstats`: Logical indicator of whether external summary statistics are available for this variant. Variants without summary statistics are analyzed using internal data alone.
+    -   `fallback_used`: Logical indicator of whether QR decomposition fallback was used during estimation; when `TRUE`, results may have reduced numerical stability and should be interpreted with caution
+4.  **Association results** (main results):
+    -   `joint_pval`: Joint p-value for testing all ancestry-specific SNP dosage effects
+    -   `beta_anc*`: Effect size (log odds for logistic, linear coefficient for linear) for each ancestry
+    -   `se_anc*`: Standard error of the effect size for each ancestry
+    -   `pval_anc*`: P-value for each ancestry-specific effect
+5.  **Local ancestry effects** (when `cond_local = TRUE`):
+    -   `LAeff_anc*`: Effect size (log odds for logistic, linear coefficient for linear) of the local ancestry term for each ancestry
+    -   `LAse_anc*`: Standard error of the local ancestry effect for each ancestry
+    -   `LApval_anc*`: P-value for the local ancestry effect for each ancestry
 
 ```{r tlstractor-results}
 # Path to the output file
@@ -524,25 +508,17 @@ dim(results)
 colnames(results)
 ```
 
-## Assumption checking
+## Assumption checking {#assumption-checking}
 
-A practical way to assess TLS-Tractor's transportability assumption is to test for effect heterogeneity between the internal and external cohorts.
-Specifically,
-- from the internal cohort, obtain effect estimates $\beta_1$ and standard errors $SE_1$ for each SNP from a standard GWAS model (fitted using tools such as PLINK2)
-- from the external GWAS summary statistics, obtain effect estimates $\beta_2$ and standard errors $SE_2$ for the same SNPs (these should already be available from the munged summary statistics file)
+A practical way to assess TLS-Tractor's transportability assumption is to test for effect heterogeneity between the internal and external cohorts. Specifically, - from the internal cohort, obtain effect estimates $\beta_1$ and standard errors $SE_1$ for each SNP from a standard GWAS model (fitted using tools such as PLINK2) - from the external GWAS summary statistics, obtain effect estimates $\beta_2$ and standard errors $SE_2$ for the same SNPs (these should already be available from the munged summary statistics file)
 
-For each SNP, test whether the effect sizes are consistent across cohorts using:
-$$
+For each SNP, test whether the effect sizes are consistent across cohorts using: $$
 z = \frac{\beta_1 - \beta_2}{\sqrt{SE_1^2 + SE_2^2}}
 $$
 
-Under the null hypothesis $H_0: \beta_1 = \beta_2$, the $z$ statistic approximately follows a standard normal distribution, assuming the two estimates are independent.
-A two-sided p-value can be computed accordingly.
-This is a Wald test for heterogeneity between two independent estimates, and is equivalent to Cochran's Q test in the special case of two studies (i.e., $Q = z^2$).
+Under the null hypothesis $H_0: \beta_1 = \beta_2$, the $z$ statistic approximately follows a standard normal distribution, assuming the two estimates are independent. A two-sided p-value can be computed accordingly. This is a Wald test for heterogeneity between two independent estimates, and is equivalent to Cochran's Q test in the special case of two studies (i.e., $Q = z^2$).
 
-After computing p-values genome-wide, a QQ plot can be used to assess calibration of the heterogeneity test.
-If the transportability assumption is satisfied, most SNPs should exhibit no evidence of heterogeneity, and the observed p-values should follow the expected null distribution (i.e., align with the diagonal).
-Systematic deviations may indicate violations of the assumption.
+After computing p-values genome-wide, a QQ plot can be used to assess calibration of the heterogeneity test. If the transportability assumption is satisfied, most SNPs should exhibit no evidence of heterogeneity, and the observed p-values should follow the expected null distribution (i.e., align with the diagonal). Systematic deviations may indicate violations of the assumption.
 
 ```{r assumption-check-qqplot, eval = FALSE}
 # Example workflow:
@@ -603,9 +579,9 @@ Use `?` to inspect full documentation.
 ?tlstractor::tlstractor
 ```
 
-# Full binary pipeline code (Not run)
+# Full binary pipeline code
 
-The code chunk below illustrates the full workflow for simulated binary data, from tract extraction to the final TLS-Tractor output. It is provided with `eval = FALSE` so that it is displayed but not executed.
+The code chunk below illustrates the full workflow for simulated binary data, from tract extraction to the final TLS-Tractor output.
 
 ```{r full-binary-pipeline, eval = FALSE}
 # Get path to tutorial data included in the package
