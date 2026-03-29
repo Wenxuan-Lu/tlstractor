@@ -22,7 +22,7 @@ Current version: 0.0.0.9000 (in development)
 
 ### 1) Install the development version (GitHub)
 
-Use this option for the latest features and fixes.
+Use this option for the latest features and fixes. Installation may take a few minutes.
 
 ``` r
 install.packages("pak")
@@ -229,7 +229,6 @@ View vignettes with `browseVignettes("tlstractor")`.
 
 [Back to Contents](#contents)
 
-```{=html}
 <!--
 ## Citation
 
@@ -238,7 +237,6 @@ If you use this package, please cite our manuscript.
 TODO: add usethis::use_citation() later to include inst/CITATION
 
 [Back to Contents](#contents) -->
-```
 
 ## Bug reports
 
