@@ -14,13 +14,11 @@ Current version: 0.0.0.9000 (in development)
 -   [Bug reports](#bug-reports)
 -   [License](#license)
 
-```{=html}
 <!-- After installation notes,
 - [Citation](#citation)
 -->
-```
 
-## Installation {#installation}
+## Installation
 
 ### 1) Install the development version (GitHub)
 
@@ -44,7 +42,7 @@ If installation fails or you want to build vignettes locally, see [Installation 
 
 [Back to Contents](#contents)
 
-## Quick start {#quick-start}
+## Quick start
 
 TLS-Tractor extends [Tractor](https://github.com/Atkinson-Lab/Tractor) by incorporating external GWAS summary statistics into local ancestry-aware association analysis. For background on GWAS in admixed populations and local ancestry inference, see the [Tractor tutorial](https://atkinson-lab.github.io/Tractor-tutorial/).
 
@@ -181,7 +179,7 @@ tlstractor(
 
 [Back to Contents](#contents)
 
-## Installation notes {#installation-notes}
+## Installation notes
 
 ### System requirements
 
@@ -242,7 +240,7 @@ TODO: add usethis::use_citation() later to include inst/CITATION
 [Back to Contents](#contents) -->
 ```
 
-## Bug reports {#bug-reports}
+## Bug reports
 
 If you encounter a bug or have a feature request, please open an issue at <https://github.com/Wenxuan-Lu/tlstractor/issues>.
 
@@ -250,7 +248,7 @@ For other inquiries or feedback, please contact Wenxuan Lu ([wlu15\@jhu.edu](mai
 
 [Back to Contents](#contents)
 
-## License {#license}
+## License
 
 This package is licensed under the MIT License.
 
