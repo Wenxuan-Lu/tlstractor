@@ -36,6 +36,8 @@ vignettes/*.R
 .vscode/
 .idea/
 inst/doc
+
+# pkgdown artifacts
 docs
 /doc/
 /Meta/

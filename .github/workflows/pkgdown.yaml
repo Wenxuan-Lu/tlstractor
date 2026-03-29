@@ -31,22 +31,21 @@ jobs:
         with:
           use-public-rspm: true
 
-      # - uses: r-lib/actions/setup-r-dependencies@v2
-      #   with:
-      #     extra-packages: any::pkgdown, local::.
-      #     needs: website
       - name: Install system libraries
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential zlib1g-dev pkg-config
 
-      - name: Install R packages
+      - name: Install Bioconductor dependencies
         run: |
-          install.packages(c("pkgdown", "remotes", "BiocManager"))
+          install.packages("BiocManager")
           BiocManager::install("gdsfmt", ask = FALSE, update = FALSE)
-          remotes::install_deps(dependencies = TRUE)
-          remotes::install_local(upgrade = "never", dependencies = FALSE)
         shell: Rscript {0}
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgdown, local::.
+          needs: website
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
