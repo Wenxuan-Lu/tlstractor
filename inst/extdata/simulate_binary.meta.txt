@@ -1,0 +1,10 @@
+key	value
+n_individuals	8100
+main_n	100
+external_n	8000
+n_snps	5
+phenotype_type	binary
+covariate_r2	0.4
+genetic_r2	0.005
+local_ancestry_r2	0.003
+seed	456

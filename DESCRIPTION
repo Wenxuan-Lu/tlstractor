@@ -1,0 +1,41 @@
+Package: tlstractor
+Title: Transfer Learning of Summary Statistics to Tractor
+Version: 0.0.0.9000
+Authors@R: c(
+    person(
+      given = "Wenxuan",
+      family = "Lu",
+      email = "wenxuanlu@hotmail.com",
+      role = c("aut", "cre"),
+      comment = c(ORCID = "0009-0000-0985-2291")
+    )
+  )
+Maintainer: Wenxuan Lu <wenxuanlu@hotmail.com>
+Description: tlstractor implements TLS-Tractor for local ancestry–aware 
+  genome-wide association studies (GWAS), integrating external GWAS summary 
+  statistics with individual-level genotype data. It applies transfer learning 
+  to improve the estimation of ancestry-specific effects while optionally 
+  accounting for local ancestry.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+LinkingTo: 
+    Rcpp,
+    RcppEigen
+Imports: 
+    data.table,
+    gdsfmt,
+    matrixStats,
+    parallel,
+    parallelly,
+    Rcpp,
+    stats,
+    tools
+Remotes:
+    bioc::gdsfmt
+SystemRequirements: zlib
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

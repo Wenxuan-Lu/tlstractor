@@ -1,0 +1,38 @@
+# Autoconf / configure artifacts
+autom4te.cache/
+config.log
+config.status
+
+# Generated Makevars (Unix)
+src/Makevars
+
+# Native build artifacts
+src/*.o
+src/*.so
+src/*.dll
+src/*.dylib
+src/*.a
+src/*.d
+
+# Ignore built vignette outputs
+vignettes/*.html
+vignettes/*.pdf
+vignettes/*.R
+
+# R build artifacts
+*.tar.gz
+*.Rcheck/
+
+# R session / history
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+inst/doc

@@ -1,0 +1,3 @@
+#!/bin/sh
+# No configuration needed on Windows
+exit 0
