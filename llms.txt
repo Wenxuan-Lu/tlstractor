@@ -307,8 +307,8 @@ View vignettes with `browseVignettes("tlstractor")`.
 If you encounter a bug or have a feature request, please open an issue
 at <https://github.com/Wenxuan-Lu/tlstractor/issues>.
 
-For other inquiries or feedback, please contact Wenxuan Lu
-(<wlu15@jhu.edu>).
+For other inquiries or feedback, please contact Wenxuan Lu at
+[wlu15@jhu.edu](mailto:%5Bwlu15@jhu.edu%5D).
 
 [Back to Contents](#contents)
 
