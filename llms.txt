@@ -25,13 +25,29 @@ Current version: 0.0.0.9000 (in development)
 
 - [Installation](#installation)
 - [Quick start](#quick-start)
-- [Installation notes](#installation-notes)
+- [Installation troubleshooting](#installation-troubleshooting)
 - [Bug reports](#bug-reports)
 - [License](#license)
 
 ## Installation
 
-### 1) Install the development version (GitHub)
+### Optional pre-setup (Conda-based R only)
+
+If you’re not using conda, skip this subsection and continue to the
+install options below.
+
+Create and use a dedicated conda environment for tlstractor before
+installation:
+
+``` bash
+conda create -n r-tlstractor -c conda-forge r-base r-essentials -y
+conda activate r-tlstractor
+conda install -c conda-forge compilers make pkg-config zlib
+```
+
+### Install tlstractor
+
+#### Option 1) Install the development version (GitHub)
 
 Use this option for the latest features and fixes. Installation may take
 a few minutes.
@@ -41,7 +57,7 @@ install.packages("pak")
 pak::pkg_install("Wenxuan-Lu/tlstractor")
 ```
 
-### 2) Install a specific release (source tarball)
+#### Option 2) Install a specific release (source tarball)
 
 Use this option for a fixed, reproducible version.
 
@@ -51,7 +67,7 @@ pak::pkg_install("https://github.com/Wenxuan-Lu/tlstractor/releases/download/vX.
 ```
 
 If installation fails or you want to build vignettes locally, see
-[Installation notes](#installation-notes).
+[Installation troubleshooting](#installation-troubleshooting).
 
 [Back to Contents](#contents)
 
@@ -240,23 +256,39 @@ tlstractor(
 
 [Back to Contents](#contents)
 
-## Installation notes
+## Installation troubleshooting
 
-### System requirements
+Read this section only if installation fails.
+
+### 1) Check dependencies first
+
+If installation fails, the most common issue is that `gdsfmt` may not
+install correctly during package installation.
+
+Install it explicitly from Bioconductor:
+
+``` r
+install.packages("BiocManager")
+BiocManager::install("gdsfmt")
+```
+
+Then retry installing `tlstractor`.
+
+### 2) Check system requirements
 
 This package includes C++ code and links against zlib. Most users will
-not need to do anything. **Only read this section if installation
-fails.**
+not need to do anything.
 
-#### 1) Quick check
+#### 2.1) Quick check
 
 Run `Sys.which(c("make", "g++", "pkg-config"))` in R. All entries should
 be non-empty.
 
 To check for zlib, run `system("pkg-config --exists zlib") == 0` (skip
-this if `pkg-config` is not installed). This should return `TRUE`.
+this if `pkg-config` is not installed). This should return `TRUE` if
+zlib is installed.
 
-#### 2) Install required tools
+#### 2.2) Install required tools
 
 - **Windows**: install Rtools (matching your R version).
 - **macOS**: run `xcode-select --install`, then
@@ -267,13 +299,13 @@ this if `pkg-config` is not installed). This should return `TRUE`.
   `sudo dnf install -y gcc gcc-c++ make zlib-devel pkgconf-pkg-config`
 - **Alpine**: `apk add --no-cache build-base zlib-dev pkgconf`
 
-#### 3) Retry installation
+#### 2.3) Retry installation
 
 Retry with `pak::pkg_install("Wenxuan-Lu/tlstractor")` or install a
 release tarball with  
 `pak::pkg_install("https://github.com/Wenxuan-Lu/tlstractor/releases/download/vX.Y.Z/tlstractor_X.Y.Z.tar.gz")`.
 
-#### 4) Advanced: manual zlib configuration
+#### 2.4) Advanced: manual zlib configuration
 
 Only needed if installation still fails after installing zlib.
 
@@ -283,22 +315,6 @@ locations):
 `Sys.setenv(ZLIB_CPPFLAGS = "-I/path/include", ZLIB_LIBS = "-L/path/lib -lz")`
 
 Then retry installation.
-
-### Optional: build vignettes
-
-We recommend installing without building vignettes and reading tutorials
-on the package website.  
-To install vignettes locally, ensure Pandoc is available with
-[`rmarkdown::pandoc_available()`](https://pkgs.rstudio.com/rmarkdown/reference/pandoc_available.html).
-
-If needed, install with:
-
-- `remotes::install_github("Wenxuan-Lu/tlstractor", build_vignettes = TRUE)`
-
-- or
-  `remotes::install_url("https://github.com/Wenxuan-Lu/tlstractor/releases/download/vX.Y.Z/tlstractor_X.Y.Z.tar.gz", build_vignettes = TRUE)`
-
-View vignettes with `browseVignettes("tlstractor")`.
 
 [Back to Contents](#contents)
 

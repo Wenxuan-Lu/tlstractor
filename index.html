@@ -63,7 +63,7 @@
 <ul>
 <li><a href="#installation">Installation</a></li>
 <li><a href="#quick-start">Quick start</a></li>
-<li><a href="#installation-notes">Installation notes</a></li>
+<li><a href="#installation-troubleshooting">Installation troubleshooting</a></li>
 <li><a href="#bug-reports">Bug reports</a></li>
 <li><a href="#license">License</a></li>
 </ul>
@@ -75,22 +75,35 @@
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="section level3">
-<h3 id="id_1-install-the-development-version-github">1) Install the development version (GitHub)<a class="anchor" aria-label="anchor" href="#id_1-install-the-development-version-github"></a>
+<h3 id="optional-pre-setup-conda-based-r-only">Optional pre-setup (Conda-based R only)<a class="anchor" aria-label="anchor" href="#optional-pre-setup-conda-based-r-only"></a>
 </h3>
+<p>If you’re not using conda, skip this subsection and continue to the install options below.</p>
+<p>Create and use a dedicated conda environment for tlstractor before installation:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">conda</span> create <span class="at">-n</span> r-tlstractor <span class="at">-c</span> conda-forge r-base r-essentials <span class="at">-y</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="ex">conda</span> activate r-tlstractor</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="ex">conda</span> install <span class="at">-c</span> conda-forge compilers make pkg-config zlib</span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="install-tlstractor">Install tlstractor<a class="anchor" aria-label="anchor" href="#install-tlstractor"></a>
+</h3>
+<div class="section level4">
+<h4 id="option-1-install-the-development-version-github">Option 1) Install the development version (GitHub)<a class="anchor" aria-label="anchor" href="#option-1-install-the-development-version-github"></a>
+</h4>
 <p>Use this option for the latest features and fixes. Installation may take a few minutes.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"Wenxuan-Lu/tlstractor"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level3">
-<h3 id="id_2-install-a-specific-release-source-tarball">2) Install a specific release (source tarball)<a class="anchor" aria-label="anchor" href="#id_2-install-a-specific-release-source-tarball"></a>
-</h3>
+<div class="section level4">
+<h4 id="option-2-install-a-specific-release-source-tarball">Option 2) Install a specific release (source tarball)<a class="anchor" aria-label="anchor" href="#option-2-install-a-specific-release-source-tarball"></a>
+</h4>
 <p>Use this option for a fixed, reproducible version.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"https://github.com/Wenxuan-Lu/tlstractor/releases/download/vX.Y.Z/tlstractor_X.Y.Z.tar.gz"</span><span class="op">)</span></span></code></pre></div>
-<p>If installation fails or you want to build vignettes locally, see <a href="#installation-notes">Installation notes</a>.</p>
+<p>If installation fails or you want to build vignettes locally, see <a href="#installation-troubleshooting">Installation troubleshooting</a>.</p>
 <p><a href="#contents">Back to Contents</a></p>
+</div>
 </div>
 </div>
 <div class="section level2">
@@ -129,7 +142,7 @@
 <li>External GWAS summary statistics (from a standard GWAS model): <code>external_sumstats.txt</code> with columns <code>CHR</code>, <code>POS</code>, <code>ID</code>, <code>REF</code>, <code>ALT</code>, <code>BETA</code>, <code>SE</code>, and an optional column <code>AF</code>.</li>
 </ul>
 <p>Filenames and column names are illustrative; map them to your own data schema.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://wenxuan-lu.github.io/tlstractor/">tlstractor</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1) Extract tracts (choose one option)</span></span>
@@ -254,20 +267,31 @@
 <p><a href="#contents">Back to Contents</a></p>
 </div>
 <div class="section level2">
-<h2 id="installation-notes">Installation notes<a class="anchor" aria-label="anchor" href="#installation-notes"></a>
+<h2 id="installation-troubleshooting">Installation troubleshooting<a class="anchor" aria-label="anchor" href="#installation-troubleshooting"></a>
 </h2>
+<p>Read this section only if installation fails.</p>
 <div class="section level3">
-<h3 id="system-requirements">System requirements<a class="anchor" aria-label="anchor" href="#system-requirements"></a>
+<h3 id="id_1-check-dependencies-first">1) Check dependencies first<a class="anchor" aria-label="anchor" href="#id_1-check-dependencies-first"></a>
 </h3>
-<p>This package includes C++ code and links against zlib. Most users will not need to do anything. <strong>Only read this section if installation fails.</strong></p>
+<p>If installation fails, the most common issue is that <code>gdsfmt</code> may not install correctly during package installation.</p>
+<p>Install it explicitly from Bioconductor:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"gdsfmt"</span><span class="op">)</span></span></code></pre></div>
+<p>Then retry installing <code>tlstractor</code>.</p>
+</div>
+<div class="section level3">
+<h3 id="id_2-check-system-requirements">2) Check system requirements<a class="anchor" aria-label="anchor" href="#id_2-check-system-requirements"></a>
+</h3>
+<p>This package includes C++ code and links against zlib. Most users will not need to do anything.</p>
 <div class="section level4">
-<h4 id="id_1-quick-check">1) Quick check<a class="anchor" aria-label="anchor" href="#id_1-quick-check"></a>
+<h4 id="id_21-quick-check">2.1) Quick check<a class="anchor" aria-label="anchor" href="#id_21-quick-check"></a>
 </h4>
 <p>Run <code>Sys.which(c("make", "g++", "pkg-config"))</code> in R. All entries should be non-empty.</p>
-<p>To check for zlib, run <code>system("pkg-config --exists zlib") == 0</code> (skip this if <code>pkg-config</code> is not installed). This should return <code>TRUE</code>.</p>
+<p>To check for zlib, run <code>system("pkg-config --exists zlib") == 0</code> (skip this if <code>pkg-config</code> is not installed). This should return <code>TRUE</code> if zlib is installed.</p>
 </div>
 <div class="section level4">
-<h4 id="id_2-install-required-tools">2) Install required tools<a class="anchor" aria-label="anchor" href="#id_2-install-required-tools"></a>
+<h4 id="id_22-install-required-tools">2.2) Install required tools<a class="anchor" aria-label="anchor" href="#id_22-install-required-tools"></a>
 </h4>
 <ul>
 <li>
@@ -287,31 +311,32 @@
 </ul>
 </div>
 <div class="section level4">
-<h4 id="id_3-retry-installation">3) Retry installation<a class="anchor" aria-label="anchor" href="#id_3-retry-installation"></a>
+<h4 id="id_23-retry-installation">2.3) Retry installation<a class="anchor" aria-label="anchor" href="#id_23-retry-installation"></a>
 </h4>
 <p>Retry with <code>pak::pkg_install("Wenxuan-Lu/tlstractor")</code> or install a release tarball with<br><code>pak::pkg_install("https://github.com/Wenxuan-Lu/tlstractor/releases/download/vX.Y.Z/tlstractor_X.Y.Z.tar.gz")</code>.</p>
 </div>
 <div class="section level4">
-<h4 id="id_4-advanced-manual-zlib-configuration">4) Advanced: manual zlib configuration<a class="anchor" aria-label="anchor" href="#id_4-advanced-manual-zlib-configuration"></a>
+<h4 id="id_24-advanced-manual-zlib-configuration">2.4) Advanced: manual zlib configuration<a class="anchor" aria-label="anchor" href="#id_24-advanced-manual-zlib-configuration"></a>
 </h4>
 <p>Only needed if installation still fails after installing zlib.</p>
 <p>Set zlib paths explicitly (replace the paths with your system’s locations):</p>
 <p><code>Sys.setenv(ZLIB_CPPFLAGS = "-I/path/include", ZLIB_LIBS = "-L/path/lib -lz")</code></p>
 <p>Then retry installation.</p>
-</div>
-</div>
-<div class="section level3">
-<h3 id="optional-build-vignettes">Optional: build vignettes<a class="anchor" aria-label="anchor" href="#optional-build-vignettes"></a>
-</h3>
-<p>We recommend installing without building vignettes and reading tutorials on the package website.<br>
-To install vignettes locally, ensure Pandoc is available with <code><a href="https://pkgs.rstudio.com/rmarkdown/reference/pandoc_available.html" class="external-link">rmarkdown::pandoc_available()</a></code>.</p>
-<p>If needed, install with:</p>
-<ul>
-<li><p><code>remotes::install_github("Wenxuan-Lu/tlstractor", build_vignettes = TRUE)</code></p></li>
-<li><p>or <code>remotes::install_url("https://github.com/Wenxuan-Lu/tlstractor/releases/download/vX.Y.Z/tlstractor_X.Y.Z.tar.gz", build_vignettes = TRUE)</code></p></li>
-</ul>
-<p>View vignettes with <code>browseVignettes("tlstractor")</code>.</p>
 <p><a href="#contents">Back to Contents</a></p>
+<!-- ### 3) Optional: build vignettes
+
+We recommend installing without building vignettes; instead, read tutorials on the package website.
+
+To install vignettes locally, ensure Pandoc is installed by checking `rmarkdown::pandoc_available()`.
+Also ensure `gdsfmt` package is installed; if not, run `BiocManager::install("gdsfmt")`.
+
+Then, install with vignettes building:
+
+-   `remotes::install_github("Wenxuan-Lu/tlstractor", build_vignettes = TRUE)`
+
+-   or `remotes::install_url("https://github.com/Wenxuan-Lu/tlstractor/releases/download/vX.Y.Z/tlstractor_X.Y.Z.tar.gz", build_vignettes = TRUE)`
+
+View vignettes with `browseVignettes("tlstractor")`. -->
 <!--
 ## Citation
 
@@ -320,6 +345,7 @@ If you use this package, please cite our manuscript.
 TODO: add usethis::use_citation() later to include inst/CITATION
 
 [Back to Contents](#contents) -->
+</div>
 </div>
 </div>
 <div class="section level2">
