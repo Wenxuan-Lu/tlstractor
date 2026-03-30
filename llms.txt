@@ -33,7 +33,8 @@ Current version: 0.0.0.9000 (in development)
 
 ### 1) Install the development version (GitHub)
 
-Use this option for the latest features and fixes.
+Use this option for the latest features and fixes. Installation may take
+a few minutes.
 
 ``` r
 install.packages("pak")
