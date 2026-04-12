@@ -38,19 +38,17 @@ list.files(data_dir, full.names = FALSE)
 #>  [1] "simulate_binary.covar.txt"                 
 #>  [2] "simulate_binary.external_gwas_sumstats.txt"
 #>  [3] "simulate_binary.flare.vcf"                 
-#>  [4] "simulate_binary.internal_data.txt"         
-#>  [5] "simulate_binary.meta.txt"                  
-#>  [6] "simulate_binary.msp.tsv"                   
-#>  [7] "simulate_binary.phased.vcf"                
-#>  [8] "simulate_binary.pheno.txt"                 
-#>  [9] "simulate_linear.covar.txt"                 
-#> [10] "simulate_linear.external_gwas_sumstats.txt"
-#> [11] "simulate_linear.flare.vcf"                 
-#> [12] "simulate_linear.internal_data.txt"         
-#> [13] "simulate_linear.meta.txt"                  
-#> [14] "simulate_linear.msp.tsv"                   
-#> [15] "simulate_linear.phased.vcf"                
-#> [16] "simulate_linear.pheno.txt"
+#>  [4] "simulate_binary.meta.txt"                  
+#>  [5] "simulate_binary.msp.tsv"                   
+#>  [6] "simulate_binary.phased.vcf"                
+#>  [7] "simulate_binary.pheno.txt"                 
+#>  [8] "simulate_linear.covar.txt"                 
+#>  [9] "simulate_linear.external_gwas_sumstats.txt"
+#> [10] "simulate_linear.flare.vcf"                 
+#> [11] "simulate_linear.meta.txt"                  
+#> [12] "simulate_linear.msp.tsv"                   
+#> [13] "simulate_linear.phased.vcf"                
+#> [14] "simulate_linear.pheno.txt"
 ```
 
 ### Linear case inputs
@@ -198,7 +196,7 @@ gds <- gdsfmt::openfn.gds(gds_path, readonly = TRUE)
 
 # Display the GDS structure
 print(gds)
-#> File: /tmp/RtmphmsPgt/tlstractor_tutorial/linear/tracts/simulate_linear.flare.gds (3.5K)
+#> File: /tmp/RtmpEhrgr2/tlstractor_tutorial/linear/tracts/simulate_linear.flare.gds (3.5K)
 #> +    [  ]
 #> |--+ sample.id   { Str8 100 ZIP_ra(35.0%), 287B }
 #> |--+ snp.chromosome   { Str8 5 ZIP_ra(104.0%), 33B }
@@ -538,7 +536,7 @@ munge_sumstats(
 #> 0 rows excluded: invalid BETA or SE values.
 #> 0 rows excluded: invalid AF values.
 #> Variants retained after QC and matching: 5
-#> Munged summary statistics written to: /tmp/RtmphmsPgt/tlstractor_tutorial/linear/munged_sumstats/external_gwas_sumstats_munged.txt
+#> Munged summary statistics written to: /tmp/RtmpEhrgr2/tlstractor_tutorial/linear/munged_sumstats/external_gwas_sumstats_munged.txt
 ```
 
 Preview the munged summary statistics.
@@ -684,14 +682,14 @@ tlstractor(
 #> Loading summary statistics...
 #> Adjusting chunk_size from 1024 to 5 to ensure enough tasks for 1 cores.
 #> Parallel setup: using 1 of 4 available cores. Planned 1 tasks to process SNPs [1, 5] (5 total). Each task handles up to 5 SNPs (last task may be smaller). Genotypes are read in chunks of 5 SNPs within each task.
-#> Scratch directory: /tmp/RtmphmsPgt/tlstractor_tutorial/linear/results/tlstractor_linear_14286_20260412_180149_tmp
-#> Output filepath: /tmp/RtmphmsPgt/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
+#> Scratch directory: /tmp/RtmpEhrgr2/tlstractor_tutorial/linear/results/tlstractor_linear_14235_20260412_180708_tmp
+#> Output filepath: /tmp/RtmpEhrgr2/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
 #> Initializing parallel cluster...
 #> Running TLS-Tractor analysis in parallel...
 #> Merging results...
 #> Cleaning up temporary files...
 #> TLS-Tractor analysis complete!
-#> Results written to: /tmp/RtmphmsPgt/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
+#> Results written to: /tmp/RtmpEhrgr2/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
 ```
 
 ### Output interpretation
