@@ -1,5 +1,8 @@
 # Run TLS-Tractor
 
+Performs local ancestry-aware GWAS by integrating individual-level data
+with external GWAS summary statistics via transfer learning.
+
 ## Usage
 
 ``` r
@@ -147,17 +150,25 @@ Invisibly returns `NULL`. Writes gzipped GWAS results to
 
 - When `cond_local = TRUE`: `LAeff_anc*`, `LAse_anc*`, `LApval_anc*`
   (effect size, standard error, and p-value for each local ancestry
-  term) }
+  term)
 
-Performs local ancestry-aware GWAS by integrating individual-level data
-with external GWAS summary statistics via transfer learning. If present,
-output the file `<output_prefix>.excluded_samples.txt` containing sample
-IDs present in the GDS file but excluded from analysis after sample
-intersection/filtering.During execution, temporary per-task result files
-are written to `scratch_dir/<run_tag>_task_<id>.txt.gz`, where `run_tag`
-is a run-specific identifier with format
+## Details
+
+If present, output the file `<output_prefix>.excluded_samples.txt`
+containing sample IDs present in the GDS file but excluded from analysis
+after sample intersection/filtering.
+
+During execution, temporary per-task result files are written to
+`scratch_dir/<run_tag>_task_<id>.txt.gz`, where `run_tag` is a
+run-specific identifier with format
 `tlstractor_<pid>_<YYYYmmdd_HHMMSS>`. These temporary files are removed
 on successful cleanup. The directory `scratch_dir` is removed only if it
-was created by the function.SNPs present in the GDS file but absent from
-the summary statistics file are still analyzed using the Tractor model
-with individual-level data only.
+was created by the function.
+
+SNPs present in the GDS file but absent from the summary statistics file
+are still analyzed using the Tractor model with individual-level data
+only.
+
+To perform Tractor anlysis on all SNPs using only the main study, set
+`sumstats_path` to a file with one tab-delimited header line containing:
+`CHR`, `POS`, `ID`, `REF`, `ALT`, `BETA`, `SE`, and `GDS_ID`.
