@@ -106,7 +106,7 @@ ancestry-specific SNP dosage effects), \verb{beta_anc*}, \verb{se_anc*},
 ancestry-specific SNP dosage effect)
 \item When \code{cond_local = TRUE}: \verb{LAeff_anc*}, \verb{LAse_anc*}, \verb{LApval_anc*}
 (effect size, standard error, and p-value for each local ancestry term)
-\}
+}
 }
 \description{
 Performs local ancestry-aware GWAS by integrating individual-level data with
@@ -125,4 +125,8 @@ removed only if it was created by the function.
 
 SNPs present in the GDS file but absent from the summary statistics file are
 still analyzed using the Tractor model with individual-level data only.
+
+To perform Tractor anlysis on all SNPs using only the main study,
+set \code{sumstats_path} to a file with one tab-delimited header line containing:
+\code{CHR}, \code{POS}, \code{ID}, \code{REF}, \code{ALT}, \code{BETA}, \code{SE}, and \code{GDS_ID}.
 }

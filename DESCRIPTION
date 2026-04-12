@@ -37,6 +37,7 @@ Remotes:
 SystemRequirements: zlib
 Suggests: 
     knitr,
+    RhpcBLASctl,
     rmarkdown
 VignetteBuilder: knitr
 URL: https://wenxuan-lu.github.io/tlstractor/

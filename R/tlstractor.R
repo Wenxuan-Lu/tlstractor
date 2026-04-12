@@ -65,7 +65,7 @@
 #'       ancestry-specific SNP dosage effect)
 #'     \item When `cond_local = TRUE`: `LAeff_anc*`, `LAse_anc*`, `LApval_anc*`
 #'       (effect size, standard error, and p-value for each local ancestry term)
-#'   \}
+#'   }
 #'
 #' @details
 #' If present, output the file `<output_prefix>.excluded_samples.txt` containing
@@ -78,8 +78,13 @@
 #' files are removed on successful cleanup. The directory `scratch_dir` is
 #' removed only if it was created by the function.
 #'
+#'
 #' SNPs present in the GDS file but absent from the summary statistics file are
 #' still analyzed using the Tractor model with individual-level data only.
+#' 
+#' To perform Tractor anlysis on all SNPs using only the main study,
+#' set `sumstats_path` to a file with one tab-delimited header line containing:
+#' `CHR`, `POS`, `ID`, `REF`, `ALT`, `BETA`, `SE`, and `GDS_ID`.
 #'
 #' @export
 tlstractor <- function(gds_path, sumstats_path, method, cond_local,
@@ -491,7 +496,7 @@ tlstractor <- function(gds_path, sumstats_path, method, cond_local,
 
     # Determine task chunking
     nsnp_to_process <- snp_end - snp_start + 1L
-    min_snp_per_chunk <- 1024L
+    min_snp_per_chunk <- 4096L
     max_snp_per_chunk <- ceiling(nsnp_to_process / n_cores)
     max_tasks <- max(n_cores * 10L, 1000L)
 
@@ -615,7 +620,24 @@ tlstractor <- function(gds_path, sumstats_path, method, cond_local,
 
     # Initialize parallel cluster
     message("Initializing parallel cluster...")
-    cl <- parallelly::makeClusterPSOCK(n_cores, outfile = "") # outfile=NULL
+    thread_env_names <- c(
+        "OMP_NUM_THREADS",
+        "OMP_THREAD_LIMIT",
+        "OPENBLAS_NUM_THREADS",
+        "GOTO_NUM_THREADS",
+        "MKL_NUM_THREADS",
+        "VECLIB_MAXIMUM_THREADS",
+        "BLIS_NUM_THREADS",
+        "NUMEXPR_NUM_THREADS"
+    )
+    thread_env_vals <- rep.int("1", length(thread_env_names))
+    names(thread_env_vals) <- thread_env_names
+
+    cl <- parallelly::makeClusterPSOCK(
+        n_cores,
+        outfile = "",
+        rscript_envs = as.list(thread_env_vals)
+    ) # outfile=NULL
     on.exit(try(parallel::stopCluster(cl), silent = TRUE), add = TRUE)
     
     # With load balancing, tasks are assigned dynamically, so worker-based RNG
@@ -632,6 +654,9 @@ tlstractor <- function(gds_path, sumstats_path, method, cond_local,
                 function(pkg) {
                     ns <- asNamespace(pkg)
                     pkg_env <- get(".tlstractor_env", envir = ns, inherits = FALSE)
+                    # No thread/env restoration is needed here: workers are
+                    # short-lived PSOCK processes and are terminated at
+                    # cluster shutdown, so process-local settings do not leak.
 
                     st <- pkg_env$worker_state
                     if (is.list(st) && !is.null(st$g) && inherits(st$g, "gds.class")) {
@@ -658,6 +683,15 @@ tlstractor <- function(gds_path, sumstats_path, method, cond_local,
             # loadNamespace() automatically loads all Imports dependencies from DESCRIPTION
             ns <- loadNamespace(pkg)
             pkg_env <- get(".tlstractor_env", envir = ns, inherits = FALSE)
+
+            # Env thread limits are set at worker launch via rscript_envs.
+
+            data.table::setDTthreads(1L)
+
+            if (requireNamespace("RhpcBLASctl", quietly = TRUE)) {
+                try(RhpcBLASctl::blas_set_num_threads(1L), silent = TRUE)
+                try(RhpcBLASctl::omp_set_num_threads(1L), silent = TRUE)
+            }
 
             # Access worker_init via pkg::: (internal function)
             worker_init_fn <- getFromNamespace("worker_init", pkg)
@@ -700,7 +734,7 @@ tlstractor <- function(gds_path, sumstats_path, method, cond_local,
     
     # Run tasks in parallel with dynamic scheduling
     message("Running TLS-Tractor analysis in parallel...")
-    results <- parallel::parLapplyLB(
+    results <- parallel::parLapply(
         cl,
         X = tasks,
         fun = function(task, pkg) {
@@ -776,12 +810,12 @@ tlstractor <- function(gds_path, sumstats_path, method, cond_local,
 #' @noRd
 validate_col_names <- function(file_path, id_col, value_cols, file_context) {
     if (!identical(id_col, make.names(id_col))) {
-    stop(sprintf("Error: Invalid ID column name in %s: '%s'. Column names must be valid R identifiers.", file_context, id_col), call. = FALSE)
+    stop(sprintf("Error: Invalid ID column name in %s: '%s'. Use a valid R column name (letters, numbers, dots, or underscores; no leading digit).", file_context, id_col), call. = FALSE)
     }
 
     for (col in value_cols) {
         if (!identical(col, make.names(col))) {
-            stop(sprintf("Error: Invalid column name in %s: '%s'. Column names must be valid R identifiers.", file_context, col), call. = FALSE)
+            stop(sprintf("Error: Invalid column name in %s: '%s'. Use a valid R column name (letters, numbers, dots, or underscores; no leading digit).", file_context, col), call. = FALSE)
         }
     }
 
@@ -935,7 +969,13 @@ run_task <- function(task, worker_env) {
 
     # Keep singleton chunks (idx_len == 1) as 2D matrices to avoid
     # "incorrect number of dimensions" when indexing with [, k].
-    ensure_matrix_cols <- function(x, ncol_expected) {
+    ensure_matrix_cols <- function(x, ncol_expected, label = "unnamed") {
+        if (is.null(x)) {
+            stop(sprintf(
+                "run_task: NULL encountered for '%s' while shaping matrix columns (task=%d, chunk_start=%d, chunk_end=%d).",
+                label, task$id, start, min(task$end, start + idx_len - 1L)
+            ), call. = FALSE)
+        }
         if (is.matrix(x)) return(x)
         if (is.null(dim(x))) {
             return(matrix(x, ncol = ncol_expected))
@@ -943,7 +983,13 @@ run_task <- function(task, worker_env) {
         as.matrix(x)
     }
 
-    ensure_matrix_shape <- function(x, nrow_expected, ncol_expected) {
+    ensure_matrix_shape <- function(x, nrow_expected, ncol_expected, label = "unnamed") {
+        if (is.null(x)) {
+            stop(sprintf(
+                "run_task: NULL encountered for '%s' while shaping matrix (expected %d x %d; task=%d, chunk_start=%d, chunk_end=%d).",
+                label, nrow_expected, ncol_expected, task$id, start, min(task$end, start + idx_len - 1L)
+            ), call. = FALSE)
+        }
         if (is.matrix(x)) return(x)
         if (is.null(dim(x))) {
             return(matrix(x, nrow = nrow_expected, ncol = ncol_expected))
@@ -998,21 +1044,21 @@ run_task <- function(task, worker_env) {
         if (read_gds_all_then_subset) {
             for (k in seq_len(num_ancs)) {
                     dmat <- gdsfmt::read.gdsn(dosage_nodes[[k]], start = c(1L, start), count = c(-1L, idx_len))
-                    dmat <- ensure_matrix_cols(dmat, idx_len)
+                    dmat <- ensure_matrix_cols(dmat, idx_len, sprintf("dosage read.gdsn anc%d", k - 1L))
                     dmat <- dmat[ids_in_gds, , drop = FALSE]
                     dos_list[[k]] <- dmat
                     hmat <- gdsfmt::read.gdsn(hapcount_nodes[[k]], start = c(1L, start), count = c(-1L, idx_len))
-                    hmat <- ensure_matrix_cols(hmat, idx_len)
+                    hmat <- ensure_matrix_cols(hmat, idx_len, sprintf("hapcount read.gdsn anc%d", k - 1L))
                     hmat <- hmat[ids_in_gds, , drop = FALSE]
                     hap_list[[k]] <- hmat
             }
         } else {
             for (k in seq_len(num_ancs)) {
                 dmat <- gdsfmt::readex.gdsn(dosage_nodes[[k]], sel = list(ids_in_gds, gds_ids))
-                dmat <- ensure_matrix_shape(dmat, length(ids_in_gds), idx_len)
+                dmat <- ensure_matrix_shape(dmat, length(ids_in_gds), idx_len, sprintf("dosage readex.gdsn anc%d", k - 1L))
                 dos_list[[k]] <- dmat
                 hmat <- gdsfmt::readex.gdsn(hapcount_nodes[[k]], sel = list(ids_in_gds, gds_ids))
-                hmat <- ensure_matrix_shape(hmat, length(ids_in_gds), idx_len)
+                hmat <- ensure_matrix_shape(hmat, length(ids_in_gds), idx_len, sprintf("hapcount readex.gdsn anc%d", k - 1L))
                 hap_list[[k]] <- hmat
             }
         }
@@ -1087,14 +1133,14 @@ run_task <- function(task, worker_env) {
                     num_ancs = num_ancs
                 )
             }
-            z_mat <- ensure_matrix_shape(res_softpass$z, length(idx_softpass), num_ancs)
-            res_softpass$beta <- ensure_matrix_shape(res_softpass$beta, length(idx_softpass), num_ancs)
-            res_softpass$se <- ensure_matrix_shape(res_softpass$se, length(idx_softpass), num_ancs)
+            z_mat <- ensure_matrix_shape(res_softpass$z, length(idx_softpass), num_ancs, "res_softpass$z")
+            res_softpass$beta <- ensure_matrix_shape(res_softpass$beta, length(idx_softpass), num_ancs, "res_softpass$beta")
+            res_softpass$se <- ensure_matrix_shape(res_softpass$se, length(idx_softpass), num_ancs, "res_softpass$se")
             pval_mat <- 2.0 * stats::pnorm(abs(z_mat), lower.tail = FALSE)
             if (cond_local) {
-                laz_mat <- ensure_matrix_shape(res_softpass$laz, length(idx_softpass), num_ancs - 1L)
-                res_softpass$laeff <- ensure_matrix_shape(res_softpass$laeff, length(idx_softpass), num_ancs - 1L)
-                res_softpass$lase <- ensure_matrix_shape(res_softpass$lase, length(idx_softpass), num_ancs - 1L)
+                laz_mat <- ensure_matrix_shape(res_softpass$laz, length(idx_softpass), num_ancs - 1L, "res_softpass$laz")
+                res_softpass$laeff <- ensure_matrix_shape(res_softpass$laeff, length(idx_softpass), num_ancs - 1L, "res_softpass$laeff")
+                res_softpass$lase <- ensure_matrix_shape(res_softpass$lase, length(idx_softpass), num_ancs - 1L, "res_softpass$lase")
                 lapval_mat <- 2.0 * stats::pnorm(abs(laz_mat), lower.tail = FALSE)
             }
             wald_vec <- res_softpass$wald
@@ -1145,14 +1191,14 @@ run_task <- function(task, worker_env) {
                     num_ancs = num_ancs
                 )
             }
-            z_mat <- ensure_matrix_shape(res_softfail$z, length(idx_softfail), num_ancs)
-            res_softfail$beta <- ensure_matrix_shape(res_softfail$beta, length(idx_softfail), num_ancs)
-            res_softfail$se <- ensure_matrix_shape(res_softfail$se, length(idx_softfail), num_ancs)
+            z_mat <- ensure_matrix_shape(res_softfail$z, length(idx_softfail), num_ancs, "res_softfail$z")
+            res_softfail$beta <- ensure_matrix_shape(res_softfail$beta, length(idx_softfail), num_ancs, "res_softfail$beta")
+            res_softfail$se <- ensure_matrix_shape(res_softfail$se, length(idx_softfail), num_ancs, "res_softfail$se")
             pval_mat <- 2.0 * stats::pnorm(abs(z_mat), lower.tail = FALSE)
             if (cond_local) {
-                laz_mat <- ensure_matrix_shape(res_softfail$laz, length(idx_softfail), num_ancs - 1L)
-                res_softfail$laeff <- ensure_matrix_shape(res_softfail$laeff, length(idx_softfail), num_ancs - 1L)
-                res_softfail$lase <- ensure_matrix_shape(res_softfail$lase, length(idx_softfail), num_ancs - 1L)
+                laz_mat <- ensure_matrix_shape(res_softfail$laz, length(idx_softfail), num_ancs - 1L, "res_softfail$laz")
+                res_softfail$laeff <- ensure_matrix_shape(res_softfail$laeff, length(idx_softfail), num_ancs - 1L, "res_softfail$laeff")
+                res_softfail$lase <- ensure_matrix_shape(res_softfail$lase, length(idx_softfail), num_ancs - 1L, "res_softfail$lase")
                 lapval_mat <- 2.0 * stats::pnorm(abs(laz_mat), lower.tail = FALSE)
             }
             wald_vec <- res_softfail$wald
@@ -1201,29 +1247,33 @@ run_task <- function(task, worker_env) {
             }
 
             if (method == "linear") {
-                t_mat <- ensure_matrix_shape(res_nosum$t, length(idx_nosum), num_ancs)
-                res_nosum$beta <- ensure_matrix_shape(res_nosum$beta, length(idx_nosum), num_ancs)
-                res_nosum$se <- ensure_matrix_shape(res_nosum$se, length(idx_nosum), num_ancs)
+                t_mat <- ensure_matrix_shape(res_nosum$t, length(idx_nosum), num_ancs, "res_nosum$t")
+                res_nosum$beta <- ensure_matrix_shape(res_nosum$beta, length(idx_nosum), num_ancs, "res_nosum$beta")
+                res_nosum$se <- ensure_matrix_shape(res_nosum$se, length(idx_nosum), num_ancs, "res_nosum$se")
                 df_resid_vec <- as.numeric(res_nosum$df_resid) # no need for conversion?
                 valid_df <- is.finite(df_resid_vec) & (df_resid_vec > 0)
                 pval_mat <- 2.0 * stats::pt(abs(t_mat), df = df_resid_vec, lower.tail = FALSE)
                 pval_mat[!valid_df, ] <- NA_real_
                 if (cond_local) {
-                    la_t_mat <- ensure_matrix_shape(res_nosum$la_t, length(idx_nosum), num_ancs - 1L)
-                    res_nosum$laeff <- ensure_matrix_shape(res_nosum$laeff, length(idx_nosum), num_ancs - 1L)
-                    res_nosum$lase <- ensure_matrix_shape(res_nosum$lase, length(idx_nosum), num_ancs - 1L)
+                    # C++ returns local-ancestry t statistics as `lat`.
+                    # Keep a fallback to `la_t` for backward compatibility with older builds.
+                    la_t_src <- if (!is.null(res_nosum$lat)) res_nosum$lat else res_nosum$la_t
+                    la_t_label <- if (!is.null(res_nosum$lat)) "res_nosum$lat" else "res_nosum$la_t"
+                    la_t_mat <- ensure_matrix_shape(la_t_src, length(idx_nosum), num_ancs - 1L, la_t_label)
+                    res_nosum$laeff <- ensure_matrix_shape(res_nosum$laeff, length(idx_nosum), num_ancs - 1L, "res_nosum$laeff")
+                    res_nosum$lase <- ensure_matrix_shape(res_nosum$lase, length(idx_nosum), num_ancs - 1L, "res_nosum$lase")
                     lapval_mat <- 2.0 * stats::pt(abs(la_t_mat), df = df_resid_vec, lower.tail = FALSE)
                     lapval_mat[!valid_df, ] <- NA_real_
                 }
             } else {
-                z_mat <- ensure_matrix_shape(res_nosum$z, length(idx_nosum), num_ancs)
-                res_nosum$beta <- ensure_matrix_shape(res_nosum$beta, length(idx_nosum), num_ancs)
-                res_nosum$se <- ensure_matrix_shape(res_nosum$se, length(idx_nosum), num_ancs)
+                z_mat <- ensure_matrix_shape(res_nosum$z, length(idx_nosum), num_ancs, "res_nosum$z")
+                res_nosum$beta <- ensure_matrix_shape(res_nosum$beta, length(idx_nosum), num_ancs, "res_nosum$beta")
+                res_nosum$se <- ensure_matrix_shape(res_nosum$se, length(idx_nosum), num_ancs, "res_nosum$se")
                 pval_mat <- 2.0 * stats::pnorm(abs(z_mat), lower.tail = FALSE)
                 if (cond_local) {
-                    laz_mat <- ensure_matrix_shape(res_nosum$laz, length(idx_nosum), num_ancs - 1L)
-                    res_nosum$laeff <- ensure_matrix_shape(res_nosum$laeff, length(idx_nosum), num_ancs - 1L)
-                    res_nosum$lase <- ensure_matrix_shape(res_nosum$lase, length(idx_nosum), num_ancs - 1L)
+                    laz_mat <- ensure_matrix_shape(res_nosum$laz, length(idx_nosum), num_ancs - 1L, "res_nosum$laz")
+                    res_nosum$laeff <- ensure_matrix_shape(res_nosum$laeff, length(idx_nosum), num_ancs - 1L, "res_nosum$laeff")
+                    res_nosum$lase <- ensure_matrix_shape(res_nosum$lase, length(idx_nosum), num_ancs - 1L, "res_nosum$lase")
                     lapval_mat <- 2.0 * stats::pnorm(abs(laz_mat), lower.tail = FALSE)
                 }                
             }

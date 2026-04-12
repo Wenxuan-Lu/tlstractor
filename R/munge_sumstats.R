@@ -112,7 +112,11 @@ munge_sumstats <- function(
 
   invalid_cols <- provided_cols[make.names(provided_cols) != provided_cols]
   if (length(invalid_cols) > 0L) {
-    stop("Invalid column name(s): ", paste(invalid_cols, collapse = ", "), call. = FALSE)
+    stop(
+      "Invalid column name(s): ", paste(invalid_cols, collapse = ", "),
+      ". Use valid R column names (letters, numbers, dots, or underscores; no leading digit).",
+      call. = FALSE
+    )
   }
 
   missing_cols <- setdiff(required_cols, sumstats_names)

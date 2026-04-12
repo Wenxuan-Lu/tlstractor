@@ -64,8 +64,8 @@ convert_gds_to_txt <- function(gds_path, output_prefix=NULL, output_format="txt.
   alt_node <- gdsfmt::index.gdsn(in_gds, "snp.alt")
 
   num_ancs <- length(gdsfmt::ls.gdsn(gdsfmt::index.gdsn(in_gds, "dosage")))
-  if (is.null(num_ancs) || is.na(num_ancs) || num_ancs < 1L) {
-    stop("No ancestry nodes found under 'dosage' in GDS file.", call. = FALSE)
+  if (is.null(num_ancs) || is.na(num_ancs) || num_ancs <= 1L) {
+    stop("Error: at least two ancestries need to be present under 'dosage' in GDS file.", call. = FALSE)
   }
   nvars <- gdsfmt::objdesp.gdsn(chrom_node)$dim
   if (is.null(nvars)) nvars <- gdsfmt::objdesp.gdsn(chrom_node)$size
