@@ -83,7 +83,7 @@ parse_tracts_output_formats <- function(fmt) {
 
   if (is.null(fmt) || !is.character(fmt) || anyNA(fmt) || any(trimws(fmt) == "")) {
     stop(
-      "output_formats must be a character vector with supported formats: ",
+      "Parameter 'output_formats' must be a character vector with supported formats: ",
       paste(supported_formats, collapse = ", "),
       call. = FALSE
     )
@@ -94,7 +94,7 @@ parse_tracts_output_formats <- function(fmt) {
   invalid <- setdiff(fmt, supported_formats)
   if (length(invalid) > 0) {
     stop(
-      "Unsupported output format(s): ",
+      "Parameter 'output_formats' contains unsupported format(s): ",
       paste(invalid, collapse = ", "),
       "\nSupported formats are: ",
       paste(supported_formats, collapse = ", "),

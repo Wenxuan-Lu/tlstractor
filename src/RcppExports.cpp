@@ -131,9 +131,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// fill_chunk_with_sumstats_softpass_linear
-List fill_chunk_with_sumstats_softpass_linear(List dos_list, List hap_list, IntegerVector idx, NumericVector sumstats_beta, NumericVector sumstats_se, List precomp, List control, bool has_covar, bool cond_local, int num_ancs);
-RcppExport SEXP _tlstractor_fill_chunk_with_sumstats_softpass_linear(SEXP dos_listSEXP, SEXP hap_listSEXP, SEXP idxSEXP, SEXP sumstats_betaSEXP, SEXP sumstats_seSEXP, SEXP precompSEXP, SEXP controlSEXP, SEXP has_covarSEXP, SEXP cond_localSEXP, SEXP num_ancsSEXP) {
+// fill_chunk_with_sumstats_linear_fast
+List fill_chunk_with_sumstats_linear_fast(List dos_list, List hap_list, IntegerVector idx, NumericVector sumstats_beta, NumericVector sumstats_se, List precomp, List control, bool has_covar, bool cond_local, int num_ancs);
+RcppExport SEXP _tlstractor_fill_chunk_with_sumstats_linear_fast(SEXP dos_listSEXP, SEXP hap_listSEXP, SEXP idxSEXP, SEXP sumstats_betaSEXP, SEXP sumstats_seSEXP, SEXP precompSEXP, SEXP controlSEXP, SEXP has_covarSEXP, SEXP cond_localSEXP, SEXP num_ancsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -147,13 +147,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type has_covar(has_covarSEXP);
     Rcpp::traits::input_parameter< bool >::type cond_local(cond_localSEXP);
     Rcpp::traits::input_parameter< int >::type num_ancs(num_ancsSEXP);
-    rcpp_result_gen = Rcpp::wrap(fill_chunk_with_sumstats_softpass_linear(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs));
+    rcpp_result_gen = Rcpp::wrap(fill_chunk_with_sumstats_linear_fast(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs));
     return rcpp_result_gen;
 END_RCPP
 }
-// fill_chunk_with_sumstats_softfail_linear
-List fill_chunk_with_sumstats_softfail_linear(List dos_list, List hap_list, IntegerVector idx, NumericVector sumstats_beta, NumericVector sumstats_se, List precomp, List control, bool has_covar, bool cond_local, int num_ancs);
-RcppExport SEXP _tlstractor_fill_chunk_with_sumstats_softfail_linear(SEXP dos_listSEXP, SEXP hap_listSEXP, SEXP idxSEXP, SEXP sumstats_betaSEXP, SEXP sumstats_seSEXP, SEXP precompSEXP, SEXP controlSEXP, SEXP has_covarSEXP, SEXP cond_localSEXP, SEXP num_ancsSEXP) {
+// fill_chunk_with_sumstats_linear_orig
+List fill_chunk_with_sumstats_linear_orig(List dos_list, List hap_list, IntegerVector idx, NumericVector sumstats_beta, NumericVector sumstats_se, List precomp, List control, bool has_covar, bool cond_local, int num_ancs);
+RcppExport SEXP _tlstractor_fill_chunk_with_sumstats_linear_orig(SEXP dos_listSEXP, SEXP hap_listSEXP, SEXP idxSEXP, SEXP sumstats_betaSEXP, SEXP sumstats_seSEXP, SEXP precompSEXP, SEXP controlSEXP, SEXP has_covarSEXP, SEXP cond_localSEXP, SEXP num_ancsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -167,7 +167,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type has_covar(has_covarSEXP);
     Rcpp::traits::input_parameter< bool >::type cond_local(cond_localSEXP);
     Rcpp::traits::input_parameter< int >::type num_ancs(num_ancsSEXP);
-    rcpp_result_gen = Rcpp::wrap(fill_chunk_with_sumstats_softfail_linear(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs));
+    rcpp_result_gen = Rcpp::wrap(fill_chunk_with_sumstats_linear_orig(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -205,9 +205,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// fill_chunk_with_sumstats_softpass_logistic
-List fill_chunk_with_sumstats_softpass_logistic(List dos_list, List hap_list, IntegerVector idx, NumericVector sumstats_beta, NumericVector sumstats_se, List precomp, List control, bool cond_local, int num_ancs);
-RcppExport SEXP _tlstractor_fill_chunk_with_sumstats_softpass_logistic(SEXP dos_listSEXP, SEXP hap_listSEXP, SEXP idxSEXP, SEXP sumstats_betaSEXP, SEXP sumstats_seSEXP, SEXP precompSEXP, SEXP controlSEXP, SEXP cond_localSEXP, SEXP num_ancsSEXP) {
+// fill_chunk_with_sumstats_logistic_fast
+List fill_chunk_with_sumstats_logistic_fast(List dos_list, List hap_list, IntegerVector idx, NumericVector sumstats_beta, NumericVector sumstats_se, List precomp, List control, bool cond_local, int num_ancs);
+RcppExport SEXP _tlstractor_fill_chunk_with_sumstats_logistic_fast(SEXP dos_listSEXP, SEXP hap_listSEXP, SEXP idxSEXP, SEXP sumstats_betaSEXP, SEXP sumstats_seSEXP, SEXP precompSEXP, SEXP controlSEXP, SEXP cond_localSEXP, SEXP num_ancsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -220,13 +220,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type control(controlSEXP);
     Rcpp::traits::input_parameter< bool >::type cond_local(cond_localSEXP);
     Rcpp::traits::input_parameter< int >::type num_ancs(num_ancsSEXP);
-    rcpp_result_gen = Rcpp::wrap(fill_chunk_with_sumstats_softpass_logistic(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs));
+    rcpp_result_gen = Rcpp::wrap(fill_chunk_with_sumstats_logistic_fast(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs));
     return rcpp_result_gen;
 END_RCPP
 }
-// fill_chunk_with_sumstats_softfail_logistic
-List fill_chunk_with_sumstats_softfail_logistic(List dos_list, List hap_list, IntegerVector idx, NumericVector sumstats_beta, NumericVector sumstats_se, List precomp, List control, bool cond_local, int num_ancs);
-RcppExport SEXP _tlstractor_fill_chunk_with_sumstats_softfail_logistic(SEXP dos_listSEXP, SEXP hap_listSEXP, SEXP idxSEXP, SEXP sumstats_betaSEXP, SEXP sumstats_seSEXP, SEXP precompSEXP, SEXP controlSEXP, SEXP cond_localSEXP, SEXP num_ancsSEXP) {
+// fill_chunk_with_sumstats_logistic_orig
+List fill_chunk_with_sumstats_logistic_orig(List dos_list, List hap_list, IntegerVector idx, NumericVector sumstats_beta, NumericVector sumstats_se, List precomp, List control, bool cond_local, int num_ancs);
+RcppExport SEXP _tlstractor_fill_chunk_with_sumstats_logistic_orig(SEXP dos_listSEXP, SEXP hap_listSEXP, SEXP idxSEXP, SEXP sumstats_betaSEXP, SEXP sumstats_seSEXP, SEXP precompSEXP, SEXP controlSEXP, SEXP cond_localSEXP, SEXP num_ancsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -239,7 +239,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type control(controlSEXP);
     Rcpp::traits::input_parameter< bool >::type cond_local(cond_localSEXP);
     Rcpp::traits::input_parameter< int >::type num_ancs(num_ancsSEXP);
-    rcpp_result_gen = Rcpp::wrap(fill_chunk_with_sumstats_softfail_logistic(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs));
+    rcpp_result_gen = Rcpp::wrap(fill_chunk_with_sumstats_logistic_orig(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -271,12 +271,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tlstractor_gds_to_txt_close_writer_cpp", (DL_FUNC) &_tlstractor_gds_to_txt_close_writer_cpp, 1},
     {"_tlstractor_merge_task_results_cpp", (DL_FUNC) &_tlstractor_merge_task_results_cpp, 4},
     {"_tlstractor_tlstractor_linear_precompute", (DL_FUNC) &_tlstractor_tlstractor_linear_precompute, 3},
-    {"_tlstractor_fill_chunk_with_sumstats_softpass_linear", (DL_FUNC) &_tlstractor_fill_chunk_with_sumstats_softpass_linear, 10},
-    {"_tlstractor_fill_chunk_with_sumstats_softfail_linear", (DL_FUNC) &_tlstractor_fill_chunk_with_sumstats_softfail_linear, 10},
+    {"_tlstractor_fill_chunk_with_sumstats_linear_fast", (DL_FUNC) &_tlstractor_fill_chunk_with_sumstats_linear_fast, 10},
+    {"_tlstractor_fill_chunk_with_sumstats_linear_orig", (DL_FUNC) &_tlstractor_fill_chunk_with_sumstats_linear_orig, 10},
     {"_tlstractor_fill_chunk_without_sumstats_linear", (DL_FUNC) &_tlstractor_fill_chunk_without_sumstats_linear, 8},
     {"_tlstractor_tlstractor_logistic_precompute", (DL_FUNC) &_tlstractor_tlstractor_logistic_precompute, 6},
-    {"_tlstractor_fill_chunk_with_sumstats_softpass_logistic", (DL_FUNC) &_tlstractor_fill_chunk_with_sumstats_softpass_logistic, 9},
-    {"_tlstractor_fill_chunk_with_sumstats_softfail_logistic", (DL_FUNC) &_tlstractor_fill_chunk_with_sumstats_softfail_logistic, 9},
+    {"_tlstractor_fill_chunk_with_sumstats_logistic_fast", (DL_FUNC) &_tlstractor_fill_chunk_with_sumstats_logistic_fast, 9},
+    {"_tlstractor_fill_chunk_with_sumstats_logistic_orig", (DL_FUNC) &_tlstractor_fill_chunk_with_sumstats_logistic_orig, 9},
     {"_tlstractor_fill_chunk_without_sumstats_logistic", (DL_FUNC) &_tlstractor_fill_chunk_without_sumstats_logistic, 7},
     {NULL, NULL, 0}
 };

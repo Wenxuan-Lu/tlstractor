@@ -334,12 +334,12 @@ Expected input format for GWAS summary statistics:
 -   The input file should be tab-delimited.
 -   Required columns for `match_by = "CHR-POS"`: chromosome, position, reference allele, alternative allele, effect size, and standard error (default column names: `CHR`, `POS`, `REF`, `ALT`, `BETA`, `SE`).
 -   Required columns for `match_by = "ID"`: variant ID, reference allele, alternative allele, effect size, and standard error (default column names: `ID`, `REF`, `ALT`, `BETA`, `SE`).
--   Optional column: allele frequency (default `AF`), if available.
+-   Optional columns: sample size, allele frequency, case/control sample sizes, and case/control allele frequencies (default column names: `N`, `AF`, `N_case`, `N_control`, `AF_case`, `AF_control`).
 -   Additional columns are allowed but will be ignored in the munging process.
 -   For `match_by = "CHR-POS"`, accepted chromosome formats are autosomes only: `1-22`, `01-22`, `chr1-chr22`, or `chr01-chr22` (case-insensitive).
 -   The `BETA` column should represent the effect size estimate for the alternative allele (log odds ratio for logistic regression or linear coefficient for linear regression), and the `SE` column should contain the corresponding standard error.
 
-If the column names in your summary statistics file differ from the defaults, you can specify the column names using the function arguments: `chr_col`, `pos_col`, `id_col`, `ref_col`, `alt_col`, `beta_col`, `se_col`, and `af_col`.
+If the column names in your summary statistics file differ from the defaults, you can specify the column names using the function arguments: `chr_col`, `pos_col`, `id_col`, `ref_col`, `alt_col`, `beta_col`, `se_col`, `n_col`, `af_col`, `n_case_col`, `n_control_col`, `af_case_col`, and `af_control_col`.
 
 QC performed by `munge_sumstats()` on GWAS summary statistics (applied in order):
 
@@ -350,13 +350,13 @@ QC performed by `munge_sumstats()` on GWAS summary statistics (applied in order)
 5.  non-missing and non-empty `ID` when `match_by = "ID"`
 6.  duplicate removal by key: unique `(CHR, POS)` when `match_by = "CHR-POS"`, or unique `ID` when `match_by = "ID"`
 7.  effect/SE checks: `BETA != NA` and `SE > 0`
-8.  optional `AF` range check (`0 < AF < 1`) when `AF` is provided
+8.  sample size and AF checks: require `N`, `N_case`, and `N_control` to be positive when present; require `AF`, `AF_case`, and `AF_control` to lie in `(0, 1)` when present
 9.  allele flipping when needed to align with GDS reference allele definition
 
 Output format for munged summary statistics:
 
 -   The output file is tab-delimited.
--   Output columns are standardized as `CHR`, `POS`, `ID`, `REF`, `ALT`, `BETA`, `SE`, `AF` (optional), and `GDS_ID`.
+-   Output columns are standardized as `CHR`, `POS`, `ID`, `REF`, `ALT`, `BETA`, `SE`, plus any optional input columns present (`N`, `AF`, `N_case`, `N_control`, `AF_case`, `AF_control`), and `GDS_ID`.
 -   The output is aligned to GDS metadata (chromosome, position, variant ID, and alleles) so variant definitions are consistent with the GDS file.
 -   `GDS_ID` is the 1-based variant index in the GDS file to match variants in the summary statistics with variants in the GDS file. It is used by `tlstractor()` in Step 3.
 

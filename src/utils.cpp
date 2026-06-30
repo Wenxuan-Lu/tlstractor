@@ -316,7 +316,7 @@ void extract_tracts_flare_cpp(std::string vcf_path,
         if (col_header[i] == '\t') ++remaining_tabs;
       }
       nsamples = remaining_tabs + 1;
-      if (nsamples <= 1) stop("Error: at least two samples need to be present.");
+      if (nsamples <= 1) stop("At least two samples need to be present.");
       txt_header_line = "CHROM\tPOS\tID\tREF\tALT\t" + col_header.substr(static_cast<size_t>(t8 + 1)) + "\n";
       break;
     }
@@ -632,7 +632,7 @@ void extract_tracts_cpp(std::string vcf_path,
         if (col_header[i] == '\t') ++remaining_tabs;
       }
       nsamples = remaining_tabs + 1;
-      if (nsamples <= 1) stop("Error: at least two samples need to be present.");
+      if (nsamples <= 1) stop("At least two samples need to be present.");
       txt_header_line = "CHROM\tPOS\tID\tREF\tALT\t" + col_header.substr(static_cast<size_t>(t8 + 1)) + "\n";
       break;
     }
@@ -1102,7 +1102,7 @@ void merge_task_results_cpp(std::string output_path,
     try {
       reader = open_reader(task_file);
     } catch (...) {
-      Rcpp::Rcout << "Warning: Task file not found: " << task_file << std::endl;
+      Rcpp::warning(std::string("Task file not found: ") + task_file);
       continue;
     }
 
@@ -1804,7 +1804,7 @@ struct GMMWorkspace {
   Eigen::MatrixXd inv_Gram_AA;
   Eigen::MatrixXd inv_Gram_XR;
 
-  void resize(int n, int p_full, int rankA, bool needs_softfail_buffers = false) {
+  void resize(int n, int p_full, int rankA, bool needs_orig_buffers = false) {
     X_full.resize(n, p_full);
     Z.resize(n);
     X_beta.resize(n);
@@ -1824,7 +1824,7 @@ struct GMMWorkspace {
     beta_full.resize(p_full);
     vcov_beta.resize(p_full, p_full);
     solve_tmp.resize(p_full, rankA);
-    if (needs_softfail_buffers) {
+    if (needs_orig_buffers) {
       mu_prime.resize(n);
       coeff_A.resize(rankA);
       XR_aug.resize(n, rankA + 1);
@@ -1837,7 +1837,7 @@ struct GMMWorkspace {
   }
 };
 
-static inline bool delta_opt_gwas_linear_softpass(const Eigen::Ref<const Eigen::VectorXd>& y,
+static inline bool delta_opt_gwas_linear_fast(const Eigen::Ref<const Eigen::VectorXd>& y,
                                          const Eigen::Ref<const Eigen::VectorXd>& Z,
                                          const Eigen::Ref<const Eigen::MatrixXd>& X,
                                          const Eigen::Ref<const Eigen::MatrixXd>& A,
@@ -1887,7 +1887,7 @@ static inline bool delta_opt_gwas_linear_softpass(const Eigen::Ref<const Eigen::
   return ws.inv_C.allFinite();
 }
 
-static inline bool delta_opt_gwas_logistic_softpass(const Eigen::Ref<const Eigen::VectorXd>& y,
+static inline bool delta_opt_gwas_logistic_fast(const Eigen::Ref<const Eigen::VectorXd>& y,
                                            const Eigen::Ref<const Eigen::VectorXd>& Z,
                                            const Eigen::Ref<const Eigen::MatrixXd>& X,
                                            const Eigen::Ref<const Eigen::MatrixXd>& A,
@@ -1938,7 +1938,7 @@ static inline bool delta_opt_gwas_logistic_softpass(const Eigen::Ref<const Eigen
   return ws.inv_C.allFinite();
 }
 
-static inline bool delta_opt_gwas_linear_softfail(const Eigen::Ref<const Eigen::VectorXd>& y,
+static inline bool delta_opt_gwas_linear_orig(const Eigen::Ref<const Eigen::VectorXd>& y,
                                                   const Eigen::Ref<const Eigen::VectorXd>& Z,
                                                   const Eigen::Ref<const Eigen::MatrixXd>& X,
                                                   const Eigen::Ref<const Eigen::MatrixXd>& A,
@@ -2006,7 +2006,7 @@ static inline bool delta_opt_gwas_linear_softfail(const Eigen::Ref<const Eigen::
   return ws.inv_C.allFinite();
 }
 
-static inline bool delta_opt_gwas_logistic_softfail(const Eigen::Ref<const Eigen::VectorXd>& y,
+static inline bool delta_opt_gwas_logistic_orig(const Eigen::Ref<const Eigen::VectorXd>& y,
                                                     const Eigen::Ref<const Eigen::VectorXd>& Z,
                                                     const Eigen::Ref<const Eigen::MatrixXd>& X,
                                                     const Eigen::Ref<const Eigen::MatrixXd>& A,
@@ -2225,7 +2225,7 @@ static inline bool solve_beta_vcov_from_pseudo_linear(const Eigen::Ref<const Eig
 // ============================
 
 // [[Rcpp::export]]
-List fill_chunk_with_sumstats_softpass_linear(List dos_list, List hap_list, IntegerVector idx,
+List fill_chunk_with_sumstats_linear_fast(List dos_list, List hap_list, IntegerVector idx,
                                               NumericVector sumstats_beta, NumericVector sumstats_se,
                                               List precomp, List control, bool has_covar,
                                               bool cond_local, int num_ancs) {
@@ -2411,7 +2411,7 @@ List fill_chunk_with_sumstats_softpass_linear(List dos_list, List hap_list, Inte
     gmm_ws.XR_theta.noalias() += gmm_ws.Z * curr_beta;
 
     if (has_covar) {
-      if (!delta_opt_gwas_linear_softpass(y_map, gmm_ws.Z, gmm_ws.X_full,
+      if (!delta_opt_gwas_linear_fast(y_map, gmm_ws.Z, gmm_ws.X_full,
                                  *A_map,
                                  gmm_ws.X_beta, gmm_ws.XR_theta,
                                  *eta_map,
@@ -2422,7 +2422,7 @@ List fill_chunk_with_sumstats_softpass_linear(List dos_list, List hap_list, Inte
         continue;
       }
     } else {
-      if (!delta_opt_gwas_linear_softpass(y_map, gmm_ws.Z, gmm_ws.X_full,
+      if (!delta_opt_gwas_linear_fast(y_map, gmm_ws.Z, gmm_ws.X_full,
                                  A_empty,
                                  gmm_ws.X_beta, gmm_ws.XR_theta,
                                  y_map,
@@ -2460,7 +2460,7 @@ List fill_chunk_with_sumstats_softpass_linear(List dos_list, List hap_list, Inte
 
       gmm_ws.X_beta.noalias() = gmm_ws.X_full * gmm_ws.beta_full;
       if (has_covar) {
-        if (!delta_opt_gwas_linear_softpass(y_map, gmm_ws.Z, gmm_ws.X_full,
+        if (!delta_opt_gwas_linear_fast(y_map, gmm_ws.Z, gmm_ws.X_full,
                                    *A_map,
                                    gmm_ws.X_beta, gmm_ws.XR_theta,
                                    *eta_map,
@@ -2471,7 +2471,7 @@ List fill_chunk_with_sumstats_softpass_linear(List dos_list, List hap_list, Inte
           continue;
         }
       } else {
-        if (!delta_opt_gwas_linear_softpass(y_map, gmm_ws.Z, gmm_ws.X_full,
+        if (!delta_opt_gwas_linear_fast(y_map, gmm_ws.Z, gmm_ws.X_full,
                                    A_empty,
                                    gmm_ws.X_beta, gmm_ws.XR_theta,
                                    y_map,
@@ -2557,7 +2557,7 @@ List fill_chunk_with_sumstats_softpass_linear(List dos_list, List hap_list, Inte
 }
 
 // [[Rcpp::export]]
-List fill_chunk_with_sumstats_softfail_linear(List dos_list, List hap_list, IntegerVector idx,
+List fill_chunk_with_sumstats_linear_orig(List dos_list, List hap_list, IntegerVector idx,
                                               NumericVector sumstats_beta, NumericVector sumstats_se,
                                               List precomp, List control, bool has_covar,
                                               bool cond_local, int num_ancs) {
@@ -2751,7 +2751,7 @@ List fill_chunk_with_sumstats_softfail_linear(List dos_list, List hap_list, Inte
       gmm_ws.XR_theta.noalias() += gmm_ws.Z * curr_beta;
 
       bool used_qr_delta = false;
-      if (!delta_opt_gwas_linear_softfail(y_map, gmm_ws.Z, gmm_ws.X_full,
+      if (!delta_opt_gwas_linear_orig(y_map, gmm_ws.Z, gmm_ws.X_full,
                                           *A_map,
                                           gmm_ws.X_beta,
                                           gmm_ws.XR_theta,
@@ -2765,7 +2765,7 @@ List fill_chunk_with_sumstats_softfail_linear(List dos_list, List hap_list, Inte
       used_qr_this_snp = used_qr_this_snp || used_qr_delta;
     } else {
       gmm_ws.XR_theta.noalias() = gmm_ws.Z * curr_beta;
-      if (!delta_opt_gwas_linear_softpass(y_map, gmm_ws.Z, gmm_ws.X_full,
+      if (!delta_opt_gwas_linear_fast(y_map, gmm_ws.Z, gmm_ws.X_full,
                                  A_empty,
                                  gmm_ws.X_beta, gmm_ws.XR_theta,
                                  y_map,
@@ -2806,7 +2806,7 @@ List fill_chunk_with_sumstats_softfail_linear(List dos_list, List hap_list, Inte
 
       if (has_covar) {
         bool used_qr_delta = false;
-        if (!delta_opt_gwas_linear_softfail(y_map, gmm_ws.Z, gmm_ws.X_full,
+        if (!delta_opt_gwas_linear_orig(y_map, gmm_ws.Z, gmm_ws.X_full,
                                             *A_map,
                                             gmm_ws.X_beta,
                                             gmm_ws.XR_theta,
@@ -2819,7 +2819,7 @@ List fill_chunk_with_sumstats_softfail_linear(List dos_list, List hap_list, Inte
         }
         used_qr_this_snp = used_qr_this_snp || used_qr_delta;
       } else {
-        if (!delta_opt_gwas_linear_softpass(y_map, gmm_ws.Z, gmm_ws.X_full,
+        if (!delta_opt_gwas_linear_fast(y_map, gmm_ws.Z, gmm_ws.X_full,
                                    A_empty,
                                    gmm_ws.X_beta, gmm_ws.XR_theta,
                                    y_map,
@@ -4785,7 +4785,7 @@ static inline bool tlstractor_logistic_coef_vcov_A(
 // ============================
 
 // [[Rcpp::export]]
-List fill_chunk_with_sumstats_softpass_logistic(List dos_list, List hap_list, IntegerVector idx,
+List fill_chunk_with_sumstats_logistic_fast(List dos_list, List hap_list, IntegerVector idx,
                                                 NumericVector sumstats_beta, NumericVector sumstats_se,
                                                 List precomp, List control,
                                                 bool cond_local, int num_ancs) {
@@ -4939,7 +4939,7 @@ List fill_chunk_with_sumstats_softpass_logistic(List dos_list, List hap_list, In
     eta_theta.noalias() += gmm_ws.Z * curr_beta;
     logistic_mu_stable_eigen(eta_theta, mu_theta);
 
-    if (!delta_opt_gwas_logistic_softpass(yv, gmm_ws.Z, gmm_ws.X_full,
+    if (!delta_opt_gwas_logistic_fast(yv, gmm_ws.Z, gmm_ws.X_full,
                                   Am,
                                   mu_beta, mu_theta,
                                   mu0,
@@ -4971,7 +4971,7 @@ List fill_chunk_with_sumstats_softpass_logistic(List dos_list, List hap_list, In
     logistic_mu_stable_eigen(gmm_ws.X_beta, mu_beta);
 
     if (refine_C) {
-      if (!delta_opt_gwas_logistic_softpass(yv, gmm_ws.Z, gmm_ws.X_full,
+      if (!delta_opt_gwas_logistic_fast(yv, gmm_ws.Z, gmm_ws.X_full,
                                     Am,
                                     mu_beta, mu_theta,
                                     mu0,
@@ -5057,7 +5057,7 @@ List fill_chunk_with_sumstats_softpass_logistic(List dos_list, List hap_list, In
 }
 
 // [[Rcpp::export]]
-List fill_chunk_with_sumstats_softfail_logistic(List dos_list, List hap_list, IntegerVector idx,
+List fill_chunk_with_sumstats_logistic_orig(List dos_list, List hap_list, IntegerVector idx,
                                                 NumericVector sumstats_beta, NumericVector sumstats_se,
                                                 List precomp, List control,
                                                 bool cond_local, int num_ancs) {
@@ -5245,7 +5245,7 @@ List fill_chunk_with_sumstats_softfail_logistic(List dos_list, List hap_list, In
     logistic_mu_stable_eigen(eta_theta, mu_theta);
 
     bool used_qr_delta = false;
-    delta_ok = delta_opt_gwas_logistic_softfail(
+    delta_ok = delta_opt_gwas_logistic_orig(
       yv,
       gmm_ws.Z,
       gmm_ws.X_full,
@@ -5286,7 +5286,7 @@ List fill_chunk_with_sumstats_softfail_logistic(List dos_list, List hap_list, In
 
     if (refine_C) {
       used_qr_delta = false;
-      if (!delta_opt_gwas_logistic_softfail(
+      if (!delta_opt_gwas_logistic_orig(
             yv,
             gmm_ws.Z,
             gmm_ws.X_full,

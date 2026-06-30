@@ -59,14 +59,14 @@ extract_tracts_flare <- function(vcf_path,
 
   validate_param_type(num_ancs, "integer", "num_ancs", check_length_one = TRUE)
   num_ancs <- as.integer(num_ancs)
-  if (num_ancs <= 1) stop("Error: num_ancs must be a positive integer greater than 1.", call. = FALSE)
+  if (num_ancs <= 1) stop("Parameter 'num_ancs' must be a positive integer greater than 1.", call. = FALSE)
 
   validate_param_type(output_formats, "character", "output_formats", check_length_one = FALSE)
   formats <- parse_tracts_output_formats(output_formats)
 
   validate_param_type(chunk_size, "integer", "chunk_size", check_length_one = TRUE)
   chunk_size <- as.integer(chunk_size)
-  if (chunk_size <= 0) stop("Error: chunk_size must be a positive integer.", call. = FALSE)
+  if (chunk_size <= 0) stop("Parameter 'chunk_size' must be a positive integer.", call. = FALSE)
 
   # Initialize GDS file if needed
   want_gds <- "gds" %in% formats

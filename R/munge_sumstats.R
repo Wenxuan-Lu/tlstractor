@@ -16,22 +16,34 @@
 #' @param alt_col Character; alternative allele column name in the GWAS summary statistics file (default `"ALT"`).
 #' @param beta_col Character; effect size column name in the GWAS summary statistics file (default `"BETA"`).
 #' @param se_col Character; standard error column name in the GWAS summary statistics file (default `"SE"`).
+#' @param n_col Character; total sample size column name in the GWAS summary statistics file (default `"N"`).
+#'   Optional; omitted from output if absent in input GWAS summary statistics.
 #' @param af_col Character; allele frequency column name in the GWAS summary statistics file (default `"AF"`).
+#'   Optional; omitted from output if absent in input GWAS summary statistics.
+#' @param n_case_col Character; case sample size column name in the GWAS summary statistics file (default `"N_case"`).
+#'   Optional; omitted from output if absent in input GWAS summary statistics.
+#' @param n_control_col Character; control sample size column name in the GWAS summary statistics file (default `"N_control"`).
+#'   Optional; omitted from output if absent in input GWAS summary statistics.
+#' @param af_case_col Character; case allele frequency column name in the GWAS summary statistics file (default `"AF_case"`).
+#'   Optional; omitted from output if absent in input GWAS summary statistics.
+#' @param af_control_col Character; control allele frequency column name in the GWAS summary statistics file (default `"AF_control"`).
 #'   Optional; omitted from output if absent in input GWAS summary statistics.
 #' @param remove_ambiguous Logical; if `TRUE` (default), exclude ambiguous SNPs.
 #' @param output_path Character or `NULL`; output file path. If `NULL` (default),
 #'   auto-generated as `<sumstats_prefix>_munged.txt` in the same directory as `sumstats_path`,
 #'   where `<sumstats_prefix>` is the filename prefix of `sumstats_path` without extension.
-#' @return Invisibly returns `NULL`. Filtered results written to `output_path`
-#'   as tab-delimited text with columns: `CHR`, `POS`, `ID`, `REF`, `ALT`, `BETA`, `SE`, `AF` (optional), `GDS_ID`.
+#' @return Invisibly returns `NULL`. Writes filtered results to `output_path`
+#'   as tab-delimited text. Output always includes `CHR`, `POS`, `ID`, `REF`, `ALT`, `BETA`, `SE`, and `GDS_ID`.
+#'   Optional input columns `N`, `AF`, `N_case`, `N_control`, `AF_case`, and `AF_control` are preserved if present.
 #'   `GDS_ID` is the 1-based variant index in the input GDS file to match variants
 #'   in the summary statistics with variants in the GDS file.
 #'
 #' @details
 #' **Required columns:**
 #' The input summary statistics must contain columns for `REF`, `ALT`, `BETA`, and `SE`,
-#' along with either (`CHR` and `POS`) when `match_by = "CHR-POS"` or `ID` when `match_by = "ID"`.
-#' The `AF` column is optional. Additional columns are allowed but ignored.
+#' plus either (`CHR` and `POS`) when `match_by = "CHR-POS"` or `ID` when `match_by = "ID"`.
+#' Optional columns are `N`, `AF`, `N_case`, `N_control`, `AF_case`, and `AF_control`.
+#' Additional columns are allowed but ignored.
 #' When `match_by = "CHR-POS"`, accepted chromosome formats are autosomes only:
 #' `1-22`, `01-22`, `chr1-chr22`, or `chr01-chr22` (case-insensitive).
 #' The `BETA` column should represent the effect size estimate for the alternative allele
@@ -40,13 +52,13 @@
 #'
 #' **Quality control filters for summary statistics (applied in order):**
 #'   1. REF/ALT: single A/C/G/T nucleotides, biallelic
-#'   2. Ambiguous SNPs: optionally remove A/T, T/A, C/G, G/C
-#'   3. Autosomes: restrict to chromosomes 1-22 (when `match_by = "CHR-POS"`)
-#'   4. POS: `POS > 0` (when `match_by = "CHR-POS"`)
-#'   5. ID: non-missing and non-empty (when `match_by = "ID"`)
-#'   6. Duplicates: retain variants with unique `(CHR, POS)` pairs (when `match_by = "CHR-POS"`) or unique `ID` (when `match_by = "ID"`)
-#'   7. Effect/SE: `BETA != NA`, `SE > 0`
-#'   8. AF range: `0 < AF < 1` (if present)
+#'   2. Ambiguous SNPs: optionally remove A/T, T/A, C/G, and G/C
+#'   3. Autosomes: restrict to chromosomes 1-22 when `match_by = "CHR-POS"`
+#'   4. POS: require `POS > 0` when `match_by = "CHR-POS"`
+#'   5. ID: require non-missing, non-empty IDs when `match_by = "ID"`
+#'   6. Duplicates: keep variants with unique `(CHR, POS)` or unique `ID` and remove all duplicates
+#'   7. Effect/SE: require `BETA` not missing and `SE > 0`
+#'   8. Sample sizes and AF ranges: require `N`, `N_case`, and `N_control` to be positive when present, and require `AF`, `AF_case`, and `AF_control` to lie in `(0, 1)` when present
 #'
 #' @export
 munge_sumstats <- function(
@@ -60,7 +72,12 @@ munge_sumstats <- function(
     alt_col = "ALT",
     beta_col = "BETA",
     se_col = "SE",
+    n_col = "N",
     af_col = "AF",
+    n_case_col = "N_case",
+    n_control_col = "N_control",
+    af_case_col = "AF_case",
+    af_control_col = "AF_control",
     remove_ambiguous = TRUE,
     output_path = NULL
 ) {
@@ -76,7 +93,12 @@ munge_sumstats <- function(
   validate_param_type(alt_col, "character", "alt_col", check_length_one = TRUE)
   validate_param_type(beta_col, "character", "beta_col", check_length_one = TRUE)
   validate_param_type(se_col, "character", "se_col", check_length_one = TRUE)
+  validate_param_type(n_col, "character", "n_col", check_length_one = TRUE)
   validate_param_type(af_col, "character", "af_col", check_length_one = TRUE)
+  validate_param_type(n_case_col, "character", "n_case_col", check_length_one = TRUE)
+  validate_param_type(n_control_col, "character", "n_control_col", check_length_one = TRUE)
+  validate_param_type(af_case_col, "character", "af_case_col", check_length_one = TRUE)
+  validate_param_type(af_control_col, "character", "af_control_col", check_length_one = TRUE)
   validate_param_type(remove_ambiguous, "logical", "remove_ambiguous", check_length_one = TRUE)
   if (is.null(output_path)) {
     output_path <- paste0(get_filepath_prefix(sumstats_path), "_munged.txt")
@@ -101,11 +123,13 @@ munge_sumstats <- function(
   }
 
   if (match_by == "CHR-POS") {
-    provided_cols <- c(chr_col, pos_col, ref_col, alt_col, beta_col, se_col, af_col)
+    provided_cols <- c(chr_col, pos_col, ref_col, alt_col, beta_col, se_col,
+                       n_col, af_col, n_case_col, n_control_col, af_case_col, af_control_col)
     required_cols <- c(chr_col, pos_col, ref_col, alt_col, beta_col, se_col)
     new_names <- c("CHR", "POS", "REF", "ALT", "BETA", "SE")
   } else {
-    provided_cols <- c(id_col, ref_col, alt_col, beta_col, se_col, af_col)
+    provided_cols <- c(id_col, ref_col, alt_col, beta_col, se_col,
+                       n_col, af_col, n_case_col, n_control_col, af_case_col, af_control_col)
     required_cols <- c(id_col, ref_col, alt_col, beta_col, se_col)
     new_names <- c("ID", "REF", "ALT", "BETA", "SE")
   }
@@ -124,26 +148,24 @@ munge_sumstats <- function(
     stop("Missing required summary statistics column(s): ", paste(missing_cols, collapse = ", "), call. = FALSE)
   }
 
-  # Check if AF column exists
-  has_af <- af_col %in% sumstats_names
-  if (has_af) {
-    selected_cols <- provided_cols
-    new_names <- c(new_names, "AF")
-  } else {
-    selected_cols <- required_cols
-  }
+  optional_cols <- c(n_col, af_col, n_case_col, n_control_col, af_case_col, af_control_col)
+  optional_out_names <- c("N", "AF", "N_case", "N_control", "AF_case", "AF_control")
+  optional_present <- optional_cols %in% sumstats_names
+  selected_cols <- c(required_cols, optional_cols[optional_present])
+  new_names <- c(new_names, optional_out_names[optional_present])
 
   # Set column classes for efficient reading
+  numeric_optional_cols <- optional_cols[optional_present]
   if (match_by == "CHR-POS") {
     colClasses <- list(
       character = c(chr_col, ref_col, alt_col),
       integer   = pos_col,
-      numeric   = c(beta_col, se_col, if (has_af) af_col)
+      numeric   = c(beta_col, se_col, numeric_optional_cols)
     )
   } else {
     colClasses <- list(
       character = c(id_col, ref_col, alt_col),
-      numeric   = c(beta_col, se_col, if (has_af) af_col)
+      numeric   = c(beta_col, se_col, numeric_optional_cols)
     )
   }
 
@@ -203,9 +225,19 @@ munge_sumstats <- function(
 
   # Perform QC and matching
   if (match_by == "CHR-POS") {
-    out <- qc_and_match_by_chr_pos(sumstats, gds_dt, has_af, remove_ambiguous)
+    out <- qc_and_match_by_chr_pos(
+      sumstats,
+      gds_dt,
+      optional_out_names[optional_present],
+      remove_ambiguous
+    )
   } else {
-    out <- qc_and_match_by_id(sumstats, gds_dt, has_af, remove_ambiguous)
+    out <- qc_and_match_by_id(
+      sumstats,
+      gds_dt,
+      optional_out_names[optional_present],
+      remove_ambiguous
+    )
   }
   rm(gds_dt, sumstats)
 
@@ -215,11 +247,7 @@ munge_sumstats <- function(
 
   # Finalize output
   data.table::setnames(out, "CHR_ORIG", "CHR")
-  if (has_af) {
-    data.table::setcolorder(out, c("CHR", "POS", "ID", "REF", "ALT", "BETA", "SE", "AF", "GDS_ID"))
-  } else {
-    data.table::setcolorder(out, c("CHR", "POS", "ID", "REF", "ALT", "BETA", "SE", "GDS_ID"))
-  }
+  data.table::setcolorder(out, c("CHR", "POS", "ID", "REF", "ALT", "BETA", "SE", optional_out_names[optional_present], "GDS_ID"))
   data.table::setorder(out, GDS_ID)
   data.table::fwrite(out, file = output_path, sep = "\t", quote = FALSE, col.names = TRUE)
   message("Variants retained after QC and matching: ", nrow(out))
@@ -246,7 +274,9 @@ get_filepath_prefix <- function(filepath) {
 
 #' @keywords internal
 #' @noRd
-qc_and_match_by_chr_pos <- function(sumstats, gds_dt, has_af, remove_ambiguous) {
+qc_and_match_by_chr_pos <- function(sumstats, gds_dt,
+                                    optional_cols,
+                                    remove_ambiguous) {
   # Validate REF/ALT
   data.table::set(sumstats, j = "REF", value = toupper(sumstats[["REF"]]))
   data.table::set(sumstats, j = "ALT", value = toupper(sumstats[["ALT"]]))
@@ -303,11 +333,41 @@ qc_and_match_by_chr_pos <- function(sumstats, gds_dt, has_af, remove_ambiguous) 
   message(invalid_count, " rows excluded: invalid BETA or SE values.")
   if (invalid_count > 0) sumstats <- sumstats[keep]
 
-  # Validate AF if present
-  if (has_af) {
+  # Validate N, AF, N_case, N_control, AF_case, AF_control if present
+  if ("N" %in% optional_cols) {
+    keep <- !is.na(sumstats[["N"]]) & sumstats[["N"]] > 0
+    invalid_count <- sum(!keep)
+    message(invalid_count, " rows excluded: invalid N values.")
+    if (invalid_count > 0) sumstats <- sumstats[keep]
+  }
+  if ("AF" %in% optional_cols) {
     keep <- !is.na(sumstats[["AF"]]) & sumstats[["AF"]] > 0 & sumstats[["AF"]] < 1
     invalid_count <- sum(!keep)
     message(invalid_count, " rows excluded: invalid AF values.")
+    if (invalid_count > 0) sumstats <- sumstats[keep]
+  }
+  if ("N_case" %in% optional_cols) {
+    keep <- !is.na(sumstats[["N_case"]]) & sumstats[["N_case"]] > 0
+    invalid_count <- sum(!keep)
+    message(invalid_count, " rows excluded: invalid N_case values.")
+    if (invalid_count > 0) sumstats <- sumstats[keep]
+  }
+  if ("N_control" %in% optional_cols) {
+    keep <- !is.na(sumstats[["N_control"]]) & sumstats[["N_control"]] > 0
+    invalid_count <- sum(!keep)
+    message(invalid_count, " rows excluded: invalid N_control values.")
+    if (invalid_count > 0) sumstats <- sumstats[keep]
+  }
+  if ("AF_case" %in% optional_cols) {
+    keep <- !is.na(sumstats[["AF_case"]]) & sumstats[["AF_case"]] > 0 & sumstats[["AF_case"]] < 1
+    invalid_count <- sum(!keep)
+    message(invalid_count, " rows excluded: invalid AF_case values.")
+    if (invalid_count > 0) sumstats <- sumstats[keep]
+  }
+  if ("AF_control" %in% optional_cols) {
+    keep <- !is.na(sumstats[["AF_control"]]) & sumstats[["AF_control"]] > 0 & sumstats[["AF_control"]] < 1
+    invalid_count <- sum(!keep)
+    message(invalid_count, " rows excluded: invalid AF_control values.")
     if (invalid_count > 0) sumstats <- sumstats[keep]
   }
   rm(keep)
@@ -320,16 +380,22 @@ qc_and_match_by_chr_pos <- function(sumstats, gds_dt, has_af, remove_ambiguous) 
   data.table::setindexv(sumstats, c("CHR", "POS", "REF", "ALT"))
 
   # Forward match
-  if (has_af) {
-    fwd_match <- sumstats[gds_dt, on = c("CHR", "POS", "REF", "ALT"), nomatch = 0,
-      list(CHR_ORIG = i.CHR_ORIG, POS = i.POS, ID = i.ID,
-           REF = i.REF, ALT = i.ALT, BETA, SE, AF, GDS_ID = i.GDS_ID)]
-  } else {
-    fwd_match <- sumstats[gds_dt, on = c("CHR", "POS", "REF", "ALT"), nomatch = 0,
-      list(CHR_ORIG = i.CHR_ORIG, POS = i.POS, ID = i.ID,
-           REF = i.REF, ALT = i.ALT, BETA, SE, GDS_ID = i.GDS_ID)]
-  }
-
+  fwd_match <- sumstats[gds_dt, on = c("CHR", "POS", "REF", "ALT"), nomatch = 0,
+    c(
+      list(
+        CHR_ORIG = i.CHR_ORIG,
+        POS      = i.POS,
+        ID       = i.ID,
+        REF      = i.REF,
+        ALT      = i.ALT
+      ),
+      mget(c("BETA", "SE", optional_cols)),
+      list(
+        GDS_ID = i.GDS_ID
+      )
+    )
+  ]
+  
   # Track matched GDS IDs
   matched <- logical(nrow(gds_dt))
   if (nrow(fwd_match) > 0L) {
@@ -338,20 +404,30 @@ qc_and_match_by_chr_pos <- function(sumstats, gds_dt, has_af, remove_ambiguous) 
 
   # Flip match for unmatched GDS variants
   if (any(!matched)) {
-    if (has_af) {
-      flip_match <- sumstats[gds_dt[!matched],
-        on = c("CHR", "POS", "REF" = "ALT", "ALT" = "REF"),
-        nomatch = 0,
-        list(CHR_ORIG = i.CHR_ORIG, POS = i.POS, ID = i.ID,
-             REF = i.REF, ALT = i.ALT, BETA = -BETA, SE = SE,
-             AF = 1 - AF, GDS_ID = i.GDS_ID)]
-    } else {
-      flip_match <- sumstats[gds_dt[!matched],
-        on = c("CHR", "POS", "REF" = "ALT", "ALT" = "REF"),
-        nomatch = 0,
-        list(CHR_ORIG = i.CHR_ORIG, POS = i.POS, ID = i.ID,
-             REF = i.REF, ALT = i.ALT, BETA = -BETA, SE = SE,
-             GDS_ID = i.GDS_ID)]
+    flip_match <- sumstats[gds_dt[!matched], on = c("CHR", "POS", "REF" = "ALT", "ALT" = "REF"), nomatch = 0,
+      c(
+        list(
+          CHR_ORIG = i.CHR_ORIG,
+          POS      = i.POS,
+          ID       = i.ID,
+          REF      = i.REF,
+          ALT      = i.ALT
+        ),
+        mget(c("BETA", "SE", optional_cols)),
+        list(
+          GDS_ID = i.GDS_ID
+        )
+      )
+    ]
+    data.table::set(flip_match, j = "BETA", value = -flip_match[["BETA"]])
+    if ("AF" %in% optional_cols) {
+      data.table::set(flip_match, j = "AF", value = 1 - flip_match[["AF"]])
+    }
+    if ("AF_case" %in% optional_cols) {
+      data.table::set(flip_match, j = "AF_case", value = 1 - flip_match[["AF_case"]])
+    }
+    if ("AF_control" %in% optional_cols) {
+      data.table::set(flip_match, j = "AF_control", value = 1 - flip_match[["AF_control"]])
     }
     out <- data.table::rbindlist(list(fwd_match, flip_match), use.names = TRUE)
   } else {
@@ -364,7 +440,9 @@ qc_and_match_by_chr_pos <- function(sumstats, gds_dt, has_af, remove_ambiguous) 
 
 #' @keywords internal
 #' @noRd
-qc_and_match_by_id <- function(sumstats, gds_dt, has_af, remove_ambiguous) {
+qc_and_match_by_id <- function(sumstats, gds_dt,
+                               optional_cols,
+                               remove_ambiguous) {
   # Validate REF/ALT
   data.table::set(sumstats, j = "REF", value = toupper(sumstats[["REF"]]))
   data.table::set(sumstats, j = "ALT", value = toupper(sumstats[["ALT"]]))
@@ -408,11 +486,41 @@ qc_and_match_by_id <- function(sumstats, gds_dt, has_af, remove_ambiguous) {
   message(invalid_count, " rows excluded: invalid BETA or SE values.")
   if (invalid_count > 0) sumstats <- sumstats[keep]
 
-  # Validate AF if present
-  if (has_af) {
+  # Validate N, AF, N_case, N_control, AF_case, AF_control if present
+  if ("N" %in% optional_cols) {
+    keep <- !is.na(sumstats[["N"]]) & sumstats[["N"]] > 0
+    invalid_count <- sum(!keep)
+    message(invalid_count, " rows excluded: invalid N values.")
+    if (invalid_count > 0) sumstats <- sumstats[keep]
+  }
+  if ("AF" %in% optional_cols) {
     keep <- !is.na(sumstats[["AF"]]) & sumstats[["AF"]] > 0 & sumstats[["AF"]] < 1
     invalid_count <- sum(!keep)
     message(invalid_count, " rows excluded: invalid AF values.")
+    if (invalid_count > 0) sumstats <- sumstats[keep]
+  }
+  if ("N_case" %in% optional_cols) {
+    keep <- !is.na(sumstats[["N_case"]]) & sumstats[["N_case"]] > 0
+    invalid_count <- sum(!keep)
+    message(invalid_count, " rows excluded: invalid N_case values.")
+    if (invalid_count > 0) sumstats <- sumstats[keep]
+  }
+  if ("N_control" %in% optional_cols) {
+    keep <- !is.na(sumstats[["N_control"]]) & sumstats[["N_control"]] > 0
+    invalid_count <- sum(!keep)
+    message(invalid_count, " rows excluded: invalid N_control values.")
+    if (invalid_count > 0) sumstats <- sumstats[keep]
+  }
+  if ("AF_case" %in% optional_cols) {
+    keep <- !is.na(sumstats[["AF_case"]]) & sumstats[["AF_case"]] > 0 & sumstats[["AF_case"]] < 1
+    invalid_count <- sum(!keep)
+    message(invalid_count, " rows excluded: invalid AF_case values.")
+    if (invalid_count > 0) sumstats <- sumstats[keep]
+  }
+  if ("AF_control" %in% optional_cols) {
+    keep <- !is.na(sumstats[["AF_control"]]) & sumstats[["AF_control"]] > 0 & sumstats[["AF_control"]] < 1
+    invalid_count <- sum(!keep)
+    message(invalid_count, " rows excluded: invalid AF_control values.")
     if (invalid_count > 0) sumstats <- sumstats[keep]
   }
   rm(keep)
@@ -425,15 +533,21 @@ qc_and_match_by_id <- function(sumstats, gds_dt, has_af, remove_ambiguous) {
   data.table::setindexv(sumstats, c("ID", "REF", "ALT"))
 
   # Forward match: CHR and POS come from GDS
-  if (has_af) {
-    fwd_match <- sumstats[gds_dt, on = c("ID", "REF", "ALT"), nomatch = 0,
-      list(CHR_ORIG = i.CHR_ORIG, POS = i.POS, ID = i.ID,
-           REF = i.REF, ALT = i.ALT, BETA, SE, AF, GDS_ID = i.GDS_ID)]
-  } else {
-    fwd_match <- sumstats[gds_dt, on = c("ID", "REF", "ALT"), nomatch = 0,
-      list(CHR_ORIG = i.CHR_ORIG, POS = i.POS, ID = i.ID,
-           REF = i.REF, ALT = i.ALT, BETA, SE, GDS_ID = i.GDS_ID)]
-  }
+  fwd_match <- sumstats[gds_dt, on = c("ID", "REF", "ALT"), nomatch = 0,
+    c(
+      list(
+        CHR_ORIG = i.CHR_ORIG,
+        POS      = i.POS,
+        ID       = i.ID,
+        REF      = i.REF,
+        ALT      = i.ALT
+      ),
+      mget(c("BETA", "SE", optional_cols)),
+      list(
+        GDS_ID = i.GDS_ID
+      )
+    )
+  ]
 
   # Track matched GDS IDs
   matched <- logical(nrow(gds_dt))
@@ -443,20 +557,30 @@ qc_and_match_by_id <- function(sumstats, gds_dt, has_af, remove_ambiguous) {
 
   # Flip match for unmatched GDS variants
   if (any(!matched)) {
-    if (has_af) {
-      flip_match <- sumstats[gds_dt[!matched],
-        on = c("ID", "REF" = "ALT", "ALT" = "REF"),
-        nomatch = 0,
-        list(CHR_ORIG = i.CHR_ORIG, POS = i.POS, ID = i.ID,
-             REF = i.REF, ALT = i.ALT, BETA = -BETA, SE = SE,
-             AF = 1 - AF, GDS_ID = i.GDS_ID)]
-    } else {
-      flip_match <- sumstats[gds_dt[!matched],
-        on = c("ID", "REF" = "ALT", "ALT" = "REF"),
-        nomatch = 0,
-        list(CHR_ORIG = i.CHR_ORIG, POS = i.POS, ID = i.ID,
-             REF = i.REF, ALT = i.ALT, BETA = -BETA, SE = SE,
-             GDS_ID = i.GDS_ID)]
+    flip_match <- sumstats[gds_dt[!matched], on = c("ID", "REF" = "ALT", "ALT" = "REF"), nomatch = 0,
+      c(
+        list(
+          CHR_ORIG = i.CHR_ORIG,
+          POS      = i.POS,
+          ID       = i.ID,
+          REF      = i.REF,
+          ALT      = i.ALT
+        ),
+        mget(c("BETA", "SE", optional_cols)),
+        list(
+          GDS_ID = i.GDS_ID
+        )
+      )
+    ]
+    data.table::set(flip_match, j = "BETA", value = -flip_match[["BETA"]])
+    if ("AF" %in% optional_cols) {
+      data.table::set(flip_match, j = "AF", value = 1 - flip_match[["AF"]])
+    }
+    if ("AF_case" %in% optional_cols) {
+      data.table::set(flip_match, j = "AF_case", value = 1 - flip_match[["AF_case"]])
+    }
+    if ("AF_control" %in% optional_cols) {
+      data.table::set(flip_match, j = "AF_control", value = 1 - flip_match[["AF_control"]])
     }
     out <- data.table::rbindlist(list(fwd_match, flip_match), use.names = TRUE)
   } else {

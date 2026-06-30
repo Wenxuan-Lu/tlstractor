@@ -25,7 +25,7 @@ convert_txt_to_gds <- function(input_prefix, num_ancs, output_prefix=NULL, chunk
 
   validate_param_type(num_ancs, "integer", "num_ancs", check_length_one = TRUE)
   num_ancs <- as.integer(num_ancs)
-  if (num_ancs <= 1) stop("Error: num_ancs must be a positive integer greater than 1.", call. = FALSE)
+  if (num_ancs <= 1) stop("Parameter 'num_ancs' must be a positive integer greater than 1.", call. = FALSE)
 
   if (!is.null(output_prefix)) {
     validate_param_type(output_prefix, "character", "output_prefix", check_length_one = TRUE)
@@ -37,7 +37,7 @@ convert_txt_to_gds <- function(input_prefix, num_ancs, output_prefix=NULL, chunk
 
   validate_param_type(chunk_size, "integer", "chunk_size", check_length_one = TRUE)
   chunk_size <- as.integer(chunk_size)
-  if (chunk_size <= 0) stop("Error: chunk_size must be a positive integer.", call. = FALSE)
+  if (chunk_size <= 0) stop("Parameter 'chunk_size' must be a positive integer.", call. = FALSE)
 
   # Build input file paths and validate
   files <- build_tracts_txt_input_paths(input_prefix, num_ancs)
@@ -48,7 +48,7 @@ convert_txt_to_gds <- function(input_prefix, num_ancs, output_prefix=NULL, chunk
   message("Input hapcount files: ", paste(files$hap_files, collapse = ", "))
   sample_ids <- parse_tracts_txt_header(files$dosage_files[1L])
   if (length(sample_ids) <= 1L) {
-    stop("Error: at least two samples need to be present.", call. = FALSE)
+    stop("At least two samples need to be present.", call. = FALSE)
   }
 
   # Write to GDS file

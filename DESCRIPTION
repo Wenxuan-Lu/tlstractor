@@ -10,14 +10,15 @@ Authors@R: c(
       comment = c(ORCID = "0009-0000-0985-2291")
     )
   )
-Maintainer: Wenxuan Lu <wenxuanlu@hotmail.com>
-Description: tlstractor implements TLS-Tractor for local ancestry–aware 
-  genome-wide association studies (GWAS), integrating external GWAS summary 
-  statistics with individual-level genotype data. It applies transfer learning 
-  to improve the estimation of ancestry-specific effects while optionally 
-  accounting for local ancestry.
+Description: Implements TLS-Tractor, a transfer-learning framework for
+  local ancestry-aware genome-wide association studies (GWAS) in admixed
+  populations. TLS-Tractor combines internal individual-level data with
+  external standard GWAS summary statistics to improve ancestry-specific
+  effect estimation and overall association testing in the Tractor framework.
 License: MIT + file LICENSE
 Encoding: UTF-8
+Depends:
+    R (>= 4.5.0)
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 LinkingTo: 
@@ -40,4 +41,5 @@ Suggests:
     RhpcBLASctl,
     rmarkdown
 VignetteBuilder: knitr
-URL: https://wenxuan-lu.github.io/tlstractor/
+URL: https://github.com/Wenxuan-Lu/tlstractor, https://wenxuan-lu.github.io/tlstractor/
+BugReports: https://github.com/Wenxuan-Lu/tlstractor/issues

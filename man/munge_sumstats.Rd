@@ -15,7 +15,12 @@ munge_sumstats(
   alt_col = "ALT",
   beta_col = "BETA",
   se_col = "SE",
+  n_col = "N",
   af_col = "AF",
+  n_case_col = "N_case",
+  n_control_col = "N_control",
+  af_case_col = "AF_case",
+  af_control_col = "AF_control",
   remove_ambiguous = TRUE,
   output_path = NULL
 )
@@ -43,7 +48,22 @@ munge_sumstats(
 
 \item{se_col}{Character; standard error column name in the GWAS summary statistics file (default \code{"SE"}).}
 
+\item{n_col}{Character; total sample size column name in the GWAS summary statistics file (default \code{"N"}).
+Optional; omitted from output if absent in input GWAS summary statistics.}
+
 \item{af_col}{Character; allele frequency column name in the GWAS summary statistics file (default \code{"AF"}).
+Optional; omitted from output if absent in input GWAS summary statistics.}
+
+\item{n_case_col}{Character; case sample size column name in the GWAS summary statistics file (default \code{"N_case"}).
+Optional; omitted from output if absent in input GWAS summary statistics.}
+
+\item{n_control_col}{Character; control sample size column name in the GWAS summary statistics file (default \code{"N_control"}).
+Optional; omitted from output if absent in input GWAS summary statistics.}
+
+\item{af_case_col}{Character; case allele frequency column name in the GWAS summary statistics file (default \code{"AF_case"}).
+Optional; omitted from output if absent in input GWAS summary statistics.}
+
+\item{af_control_col}{Character; control allele frequency column name in the GWAS summary statistics file (default \code{"AF_control"}).
 Optional; omitted from output if absent in input GWAS summary statistics.}
 
 \item{remove_ambiguous}{Logical; if \code{TRUE} (default), exclude ambiguous SNPs.}
@@ -53,8 +73,9 @@ auto-generated as \verb{<sumstats_prefix>_munged.txt} in the same directory as \
 where \verb{<sumstats_prefix>} is the filename prefix of \code{sumstats_path} without extension.}
 }
 \value{
-Invisibly returns \code{NULL}. Filtered results written to \code{output_path}
-as tab-delimited text with columns: \code{CHR}, \code{POS}, \code{ID}, \code{REF}, \code{ALT}, \code{BETA}, \code{SE}, \code{AF} (optional), \code{GDS_ID}.
+Invisibly returns \code{NULL}. Writes filtered results to \code{output_path}
+as tab-delimited text. Output always includes \code{CHR}, \code{POS}, \code{ID}, \code{REF}, \code{ALT}, \code{BETA}, \code{SE}, and \code{GDS_ID}.
+Optional input columns \code{N}, \code{AF}, \code{N_case}, \code{N_control}, \code{AF_case}, and \code{AF_control} are preserved if present.
 \code{GDS_ID} is the 1-based variant index in the input GDS file to match variants
 in the summary statistics with variants in the GDS file.
 }
@@ -66,8 +87,9 @@ filtered results.
 \details{
 \strong{Required columns:}
 The input summary statistics must contain columns for \code{REF}, \code{ALT}, \code{BETA}, and \code{SE},
-along with either (\code{CHR} and \code{POS}) when \code{match_by = "CHR-POS"} or \code{ID} when \code{match_by = "ID"}.
-The \code{AF} column is optional. Additional columns are allowed but ignored.
+plus either (\code{CHR} and \code{POS}) when \code{match_by = "CHR-POS"} or \code{ID} when \code{match_by = "ID"}.
+Optional columns are \code{N}, \code{AF}, \code{N_case}, \code{N_control}, \code{AF_case}, and \code{AF_control}.
+Additional columns are allowed but ignored.
 When \code{match_by = "CHR-POS"}, accepted chromosome formats are autosomes only:
 \code{1-22}, \code{01-22}, \code{chr1-chr22}, or \code{chr01-chr22} (case-insensitive).
 The \code{BETA} column should represent the effect size estimate for the alternative allele
@@ -77,12 +99,12 @@ and the \code{SE} column should contain the corresponding standard error.
 \strong{Quality control filters for summary statistics (applied in order):}
 \enumerate{
 \item REF/ALT: single A/C/G/T nucleotides, biallelic
-\item Ambiguous SNPs: optionally remove A/T, T/A, C/G, G/C
-\item Autosomes: restrict to chromosomes 1-22 (when \code{match_by = "CHR-POS"})
-\item POS: \code{POS > 0} (when \code{match_by = "CHR-POS"})
-\item ID: non-missing and non-empty (when \code{match_by = "ID"})
-\item Duplicates: retain variants with unique \verb{(CHR, POS)} pairs (when \code{match_by = "CHR-POS"}) or unique \code{ID} (when \code{match_by = "ID"})
-\item Effect/SE: \code{BETA != NA}, \code{SE > 0}
-\item AF range: \verb{0 < AF < 1} (if present)
+\item Ambiguous SNPs: optionally remove A/T, T/A, C/G, and G/C
+\item Autosomes: restrict to chromosomes 1-22 when \code{match_by = "CHR-POS"}
+\item POS: require \code{POS > 0} when \code{match_by = "CHR-POS"}
+\item ID: require non-missing, non-empty IDs when \code{match_by = "ID"}
+\item Duplicates: keep variants with unique \verb{(CHR, POS)} or unique \code{ID} and remove all duplicates
+\item Effect/SE: require \code{BETA} not missing and \code{SE > 0}
+\item Sample sizes and AF ranges: require \code{N}, \code{N_case}, and \code{N_control} to be positive when present, and require \code{AF}, \code{AF_case}, and \code{AF_control} to lie in \verb{(0, 1)} when present
 }
 }

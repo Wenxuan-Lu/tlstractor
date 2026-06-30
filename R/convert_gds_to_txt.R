@@ -38,7 +38,7 @@ convert_gds_to_txt <- function(gds_path, output_prefix=NULL, output_format="txt.
 
   validate_param_type(chunk_size, "integer", "chunk_size", check_length_one = TRUE)
   chunk_size <- as.integer(chunk_size)
-  if (chunk_size <= 0) stop("Error: chunk_size must be a positive integer.", call. = FALSE)
+  if (chunk_size <= 0) stop("Parameter 'chunk_size' must be a positive integer.", call. = FALSE)
 
   # Open GDS file and read metadata
   in_gds <- gdsfmt::openfn.gds(gds_path, readonly = TRUE)
@@ -54,7 +54,7 @@ convert_gds_to_txt <- function(gds_path, output_prefix=NULL, output_format="txt.
   sample_ids <- gdsfmt::read.gdsn(gdsfmt::index.gdsn(in_gds, "sample.id"))
   nsamples <- length(sample_ids)
   if (is.null(nsamples) || is.na(nsamples) || nsamples <= 1L) {
-    stop("Error: at least two samples need to be present.", call. = FALSE)
+    stop("At least two samples need to be present.", call. = FALSE)
   }
 
   chrom_node <- gdsfmt::index.gdsn(in_gds, "snp.chromosome")
@@ -65,7 +65,7 @@ convert_gds_to_txt <- function(gds_path, output_prefix=NULL, output_format="txt.
 
   num_ancs <- length(gdsfmt::ls.gdsn(gdsfmt::index.gdsn(in_gds, "dosage")))
   if (is.null(num_ancs) || is.na(num_ancs) || num_ancs <= 1L) {
-    stop("Error: at least two ancestries need to be present under 'dosage' in GDS file.", call. = FALSE)
+    stop("At least two ancestries need to be present under 'dosage' in the GDS file.", call. = FALSE)
   }
   nvars <- gdsfmt::objdesp.gdsn(chrom_node)$dim
   if (is.null(nvars)) nvars <- gdsfmt::objdesp.gdsn(chrom_node)$size

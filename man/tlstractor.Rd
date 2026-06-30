@@ -21,8 +21,8 @@ tlstractor(
   snp_count = NULL,
   n_cores = 1L,
   chunk_size = 1024L,
-  local_ancestry_mac_threshold = 20L,
-  use_fast_version = TRUE
+  mac_threshold = 20L,
+  use_fast_version = FALSE
 )
 }
 \arguments{
@@ -70,10 +70,10 @@ Default is \code{NULL}.}
 CPU core. Default is 1024; larger values may improve speed but increase
 memory usage.}
 
-\item{local_ancestry_mac_threshold}{Integer; ancestry-specific minor-allele
-count threshold. SNPs with any ancestry-specific MAC below this threshold
-are skipped. Skipped SNPs are returned in the output with \code{NA} values for
-inferential columns. Default is \code{20L}.}
+\item{mac_threshold}{Integer; ancestry-specific minor-allele count threshold.
+SNPs with any ancestry-specific MAC below this threshold are skipped.
+Skipped SNPs are returned in the output with \code{NA} values for inferential
+columns. Default is \code{20L}.}
 
 \item{use_fast_version}{Logical; whether to use the fast TLS-Tractor mode.
 The fast mode assumes that the estimated non-genetic covariate effects from
@@ -81,21 +81,21 @@ the null model (phenotype ~ covariates) are close to those from the full
 standard GWAS model (phenotype ~ SNP dosage + covariates) for any single
 SNP, so that estimated covariate effects from the null model can be reused
 across variants to reduce computation. The fast mode can provide a
-substantial speedup with minimal loss of accuracy. Default is \code{TRUE}
-(recommended for large datasets). Setting \code{FALSE} fources the full
-per-variant fitting path, which is generally more robust but substantially
-slower when covariates are included. If no covariates are provided, fast
-mode is automatically disabled.}
+moderate speedup with minimal loss of accuracy. Default is \code{FALSE}.
+If no covariates are provided, fast mode is automatically disabled.}
 }
 \value{
 Invisibly returns \code{NULL}. Writes gzipped GWAS results to
 \verb{<output_prefix>.txt.gz}. The output includes:
 \itemize{
 \item Variant metadata: \code{CHROM}, \code{POS}, \code{ID}, \code{REF}, \code{ALT}, \code{main_N}
-(sample size in the main/internal study)
+(sample size in the main/internal study). When \code{method = "logistic"}:
+\code{main_N_case}, \code{main_N_control}
 \item Frequency and ancestry summaries: \code{AF} (overall allele frequency),
 \verb{AF_anc*} (ancestry-specific allele frequency), \verb{LAprop_anc*}
-(local-ancestry-specific haplotype proportion)
+(local-ancestry-specific haplotype proportion). When
+\code{method = "logistic"}: \verb{AF_case_anc*}, \verb{AF_control_anc*},
+\verb{LAprop_case_anc*}, \verb{LAprop_control_anc*}
 \item Analysis metadata: \code{has_sumstats} (indicates whether external
 summary statistics were available), \code{fallback_used} (indicates whether
 QR decomposition fallback was used; when TRUE, results may have reduced
@@ -127,6 +127,7 @@ SNPs present in the GDS file but absent from the summary statistics file are
 still analyzed using the Tractor model with individual-level data only.
 
 To perform Tractor anlysis on all SNPs using only the main study,
-set \code{sumstats_path} to a file with one tab-delimited header line containing:
-\code{CHR}, \code{POS}, \code{ID}, \code{REF}, \code{ALT}, \code{BETA}, \code{SE}, and \code{GDS_ID}.
+set \code{sumstats_path} to a header-only tab-delimited file containing a single
+line with column names: \code{CHR}, \code{POS}, \code{ID}, \code{REF}, \code{ALT}, \code{BETA}, \code{SE}, and
+\code{GDS_ID}.
 }

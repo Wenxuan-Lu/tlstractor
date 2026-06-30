@@ -37,12 +37,12 @@ tlstractor_linear_precompute <- function(y, A, tol_scale_rank = 1.0) {
     .Call(`_tlstractor_tlstractor_linear_precompute`, y, A, tol_scale_rank)
 }
 
-fill_chunk_with_sumstats_softpass_linear <- function(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs) {
-    .Call(`_tlstractor_fill_chunk_with_sumstats_softpass_linear`, dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs)
+fill_chunk_with_sumstats_linear_fast <- function(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs) {
+    .Call(`_tlstractor_fill_chunk_with_sumstats_linear_fast`, dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs)
 }
 
-fill_chunk_with_sumstats_softfail_linear <- function(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs) {
-    .Call(`_tlstractor_fill_chunk_with_sumstats_softfail_linear`, dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs)
+fill_chunk_with_sumstats_linear_orig <- function(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs) {
+    .Call(`_tlstractor_fill_chunk_with_sumstats_linear_orig`, dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, has_covar, cond_local, num_ancs)
 }
 
 fill_chunk_without_sumstats_linear <- function(dos_list, hap_list, idx, precomp, control, has_covar, cond_local, num_ancs) {
@@ -53,12 +53,12 @@ tlstractor_logistic_precompute <- function(y, A, maxit = 25L, tol = 1e-8, max_st
     .Call(`_tlstractor_tlstractor_logistic_precompute`, y, A, maxit, tol, max_step_halving, tol_scale_rank)
 }
 
-fill_chunk_with_sumstats_softpass_logistic <- function(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs) {
-    .Call(`_tlstractor_fill_chunk_with_sumstats_softpass_logistic`, dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs)
+fill_chunk_with_sumstats_logistic_fast <- function(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs) {
+    .Call(`_tlstractor_fill_chunk_with_sumstats_logistic_fast`, dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs)
 }
 
-fill_chunk_with_sumstats_softfail_logistic <- function(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs) {
-    .Call(`_tlstractor_fill_chunk_with_sumstats_softfail_logistic`, dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs)
+fill_chunk_with_sumstats_logistic_orig <- function(dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs) {
+    .Call(`_tlstractor_fill_chunk_with_sumstats_logistic_orig`, dos_list, hap_list, idx, sumstats_beta, sumstats_se, precomp, control, cond_local, num_ancs)
 }
 
 fill_chunk_without_sumstats_logistic <- function(dos_list, hap_list, idx, precomp, control, cond_local, num_ancs) {
