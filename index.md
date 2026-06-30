@@ -53,6 +53,7 @@ Use this option for the latest features and fixes. Installation may take
 a few minutes.
 
 ``` r
+
 install.packages("pak")
 pak::pkg_install("Wenxuan-Lu/tlstractor")
 ```
@@ -62,6 +63,7 @@ pak::pkg_install("Wenxuan-Lu/tlstractor")
 Use this option for a fixed, reproducible version.
 
 ``` r
+
 install.packages("pak")
 pak::pkg_install("https://github.com/Wenxuan-Lu/tlstractor/releases/download/vX.Y.Z/tlstractor_X.Y.Z.tar.gz")
 ```
@@ -133,6 +135,7 @@ Filenames and column names are illustrative; map them to your own data
 schema.
 
 ``` r
+
 library(tlstractor)
 
 # 1) Extract tracts (choose one option)
@@ -268,6 +271,7 @@ install correctly during package installation.
 Install it explicitly from Bioconductor:
 
 ``` r
+
 install.packages("BiocManager")
 BiocManager::install("gdsfmt")
 ```

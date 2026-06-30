@@ -1,6 +1,7 @@
 # TLS-Tractor Tutorial
 
 ``` r
+
 library(tlstractor)
 ```
 
@@ -30,6 +31,7 @@ covariates, phenotype data, and local ancestry inference (LAI) results
 in both RFMix2/Gnomix and FLARE formats.
 
 ``` r
+
 # Get data directory path
 data_dir <- system.file("extdata", package = "tlstractor")
 
@@ -94,6 +96,7 @@ downstream steps in TLS-Tractor, **GDS is the only required format**.
 First, create a directory to store tract outputs.
 
 ``` r
+
 output_dir_tracts <- file.path(tempdir(), 
                                "tlstractor_tutorial", 
                                "linear", "tracts")
@@ -131,6 +134,7 @@ The GDS output path is `<prefix>.gds` within `output_dir`, where
 or `.vcf.gz`.
 
 ``` r
+
 extract_tracts(
   vcf_path = file.path(data_dir, "simulate_linear.phased.vcf"),
   msp_path = file.path(data_dir, "simulate_linear.msp.tsv"),
@@ -163,6 +167,7 @@ The GDS output path is `<prefix>.gds` within `output_dir`, where
 or `.vcf.gz`.
 
 ``` r
+
 extract_tracts_flare(
   vcf_path = file.path(data_dir, "simulate_linear.flare.vcf"),
   num_ancs = 2L,
@@ -191,12 +196,13 @@ In this structure,
 - `hapcount` contains the number of haplotypes from each ancestry
 
 ``` r
+
 # Open the GDS file in read-only mode
 gds <- gdsfmt::openfn.gds(gds_path, readonly = TRUE)
 
 # Display the GDS structure
 print(gds)
-#> File: /tmp/RtmpEhrgr2/tlstractor_tutorial/linear/tracts/simulate_linear.flare.gds (3.5K)
+#> File: /tmp/RtmpLAuTAQ/tlstractor_tutorial/linear/tracts/simulate_linear.flare.gds (3.5K)
 #> +    [  ]
 #> |--+ sample.id   { Str8 100 ZIP_ra(35.0%), 287B }
 #> |--+ snp.chromosome   { Str8 5 ZIP_ra(104.0%), 33B }
@@ -231,6 +237,7 @@ IDs and SNP metadata, then extracting ancestry-specific dosage and
 hapcount for selected SNPs or individuals.
 
 ``` r
+
 # Open the GDS file in read-only mode
 gds <- gdsfmt::openfn.gds(gds_path, readonly = TRUE)
 
@@ -349,6 +356,7 @@ Example: extract to both GDS and compressed text in one call using the
 FLARE VCF input.
 
 ``` r
+
 extract_tracts_flare(
   vcf_path = file.path(data_dir, "simulate_linear.flare.vcf"),
   num_ancs = 2L,
@@ -396,6 +404,7 @@ using the following functions:
     `<output_prefix>.anc{k}.hapcount.txt(.gz)`.
 
 ``` r
+
 # TXT (or txt.gz) -> GDS
 convert_txt_to_gds(
   input_prefix = file.path(output_dir_tracts, "simulate_linear.flare"),
@@ -422,6 +431,7 @@ convert_gds_to_txt(
 Use `?` to inspect documentation quickly.
 
 ``` r
+
 ?tlstractor::extract_tracts
 ?tlstractor::extract_tracts_flare
 ?tlstractor::convert_txt_to_gds
@@ -448,7 +458,9 @@ Expected input format for GWAS summary statistics:
 - Required columns for `match_by = "ID"`: variant ID, reference allele,
   alternative allele, effect size, and standard error (default column
   names: `ID`, `REF`, `ALT`, `BETA`, `SE`).
-- Optional column: allele frequency (default `AF`), if available.
+- Optional columns: sample size, allele frequency, case/control sample
+  sizes, and case/control allele frequencies (default column names: `N`,
+  `AF`, `N_case`, `N_control`, `AF_case`, `AF_control`).
 - Additional columns are allowed but will be ignored in the munging
   process.
 - For `match_by = "CHR-POS"`, accepted chromosome formats are autosomes
@@ -462,7 +474,8 @@ Expected input format for GWAS summary statistics:
 If the column names in your summary statistics file differ from the
 defaults, you can specify the column names using the function arguments:
 `chr_col`, `pos_col`, `id_col`, `ref_col`, `alt_col`, `beta_col`,
-`se_col`, and `af_col`.
+`se_col`, `n_col`, `af_col`, `n_case_col`, `n_control_col`,
+`af_case_col`, and `af_control_col`.
 
 QC performed by
 [`munge_sumstats()`](https://wenxuan-lu.github.io/tlstractor/reference/munge_sumstats.md)
@@ -478,7 +491,9 @@ on GWAS summary statistics (applied in order):
 6.  duplicate removal by key: unique `(CHR, POS)` when
     `match_by = "CHR-POS"`, or unique `ID` when `match_by = "ID"`
 7.  effect/SE checks: `BETA != NA` and `SE > 0`
-8.  optional `AF` range check (`0 < AF < 1`) when `AF` is provided
+8.  sample size and AF checks: require `N`, `N_case`, and `N_control` to
+    be positive when present; require `AF`, `AF_case`, and `AF_control`
+    to lie in `(0, 1)` when present
 9.  allele flipping when needed to align with GDS reference allele
     definition
 
@@ -486,7 +501,8 @@ Output format for munged summary statistics:
 
 - The output file is tab-delimited.
 - Output columns are standardized as `CHR`, `POS`, `ID`, `REF`, `ALT`,
-  `BETA`, `SE`, `AF` (optional), and `GDS_ID`.
+  `BETA`, `SE`, plus any optional input columns present (`N`, `AF`,
+  `N_case`, `N_control`, `AF_case`, `AF_control`), and `GDS_ID`.
 - The output is aligned to GDS metadata (chromosome, position, variant
   ID, and alleles) so variant definitions are consistent with the GDS
   file.
@@ -509,6 +525,7 @@ In the example call below:
   statistics filename without extension)
 
 ``` r
+
 # Create output directory for munged summary statistics
 output_dir_munge <- file.path(tempdir(), 
                               "tlstractor_tutorial",
@@ -534,14 +551,16 @@ munge_sumstats(
 #> 0 rows excluded: invalid POS values.
 #> 0 rows excluded: duplicate (CHR, POS) pairs.
 #> 0 rows excluded: invalid BETA or SE values.
+#> 0 rows excluded: invalid N values.
 #> 0 rows excluded: invalid AF values.
 #> Variants retained after QC and matching: 5
-#> Munged summary statistics written to: /tmp/RtmpEhrgr2/tlstractor_tutorial/linear/munged_sumstats/external_gwas_sumstats_munged.txt
+#> Munged summary statistics written to: /tmp/RtmpLAuTAQ/tlstractor_tutorial/linear/munged_sumstats/external_gwas_sumstats_munged.txt
 ```
 
 Preview the munged summary statistics.
 
 ``` r
+
 munged_sumstats_preview <- utils::read.delim(
   munged_sumstats_path,
   header = TRUE,
@@ -550,17 +569,18 @@ munged_sumstats_preview <- utils::read.delim(
   stringsAsFactors = FALSE
 )
 head(munged_sumstats_preview)
-#>    CHR  POS        ID REF ALT         BETA         SE        AF GDS_ID
-#> 1 chr1 1000 rs0000001   A   G  0.065739730 0.01338672 0.2983750      1
-#> 2 chr1 1010 rs0000002   A   G  0.051836263 0.01287591 0.3506250      2
-#> 3 chr1 1020 rs0000003   A   G -0.004204495 0.01285285 0.3522500      3
-#> 4 chr1 1030 rs0000004   A   G  0.038744761 0.01246723 0.3762500      4
-#> 5 chr1 1040 rs0000005   A   G  0.059339484 0.01267735 0.3783125      5
+#>    CHR  POS        ID REF ALT         BETA         SE    N        AF GDS_ID
+#> 1 chr1 1000 rs0000001   A   G  0.065739730 0.01338672 8000 0.2983750      1
+#> 2 chr1 1010 rs0000002   A   G  0.051836263 0.01287591 8000 0.3506250      2
+#> 3 chr1 1020 rs0000003   A   G -0.004204495 0.01285285 8000 0.3522500      3
+#> 4 chr1 1030 rs0000004   A   G  0.038744761 0.01246723 8000 0.3762500      4
+#> 5 chr1 1040 rs0000005   A   G  0.059339484 0.01267735 8000 0.3783125      5
 ```
 
 Use `?` to inspect full documentation.
 
 ``` r
+
 ?tlstractor::munge_sumstats
 ```
 
@@ -652,6 +672,7 @@ Run TLS-Tractor using internal individual-level data and the munged
 external summary statistics:
 
 ``` r
+
 # Create output directory for TLS-Tractor results
 output_dir_results <- file.path(tempdir(), "tlstractor_tutorial",
                                 "linear", "results")
@@ -682,14 +703,14 @@ tlstractor(
 #> Loading summary statistics...
 #> Adjusting chunk_size from 1024 to 5 to ensure enough tasks for 1 cores.
 #> Parallel setup: using 1 of 4 available cores. Planned 1 tasks to process SNPs [1, 5] (5 total). Each task handles up to 5 SNPs (last task may be smaller). Genotypes are read in chunks of 5 SNPs within each task.
-#> Scratch directory: /tmp/RtmpEhrgr2/tlstractor_tutorial/linear/results/tlstractor_linear_14235_20260412_180708_tmp
-#> Output filepath: /tmp/RtmpEhrgr2/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
+#> Scratch directory: /tmp/RtmpLAuTAQ/tlstractor_tutorial/linear/results/tlstractor_linear_14314_20260630_183911_tmp
+#> Output filepath: /tmp/RtmpLAuTAQ/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
 #> Initializing parallel cluster...
 #> Running TLS-Tractor analysis in parallel...
 #> Merging results...
 #> Cleaning up temporary files...
 #> TLS-Tractor analysis complete!
-#> Results written to: /tmp/RtmpEhrgr2/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
+#> Results written to: /tmp/RtmpLAuTAQ/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
 ```
 
 ### Output interpretation
@@ -733,6 +754,7 @@ with the following columns:
       ancestry
 
 ``` r
+
 # Path to the output file
 tlstractor_output_path <- file.path(output_dir_results,
                                     "tlstractor_linear.txt.gz")
@@ -748,24 +770,24 @@ results <- utils::read.delim(
 
 # Preview the first few rows
 head(results)
-#>   CHROM  POS        ID REF ALT main_N    AF joint_pval has_sumstats   AF_anc0
-#> 1  chr1 1000 rs0000001   A   G    100 0.300 0.06567632         TRUE 0.3076923
-#> 2  chr1 1010 rs0000002   A   G    100 0.315 0.30876716         TRUE 0.2056075
-#> 3  chr1 1020 rs0000003   A   G    100 0.370 0.97100185         TRUE 0.4019608
-#> 4  chr1 1030 rs0000004   A   G    100 0.380 0.45949422         TRUE 0.5154639
-#> 5  chr1 1040 rs0000005   A   G    100 0.380 0.01970145         TRUE 0.2747253
-#>     AF_anc1 LAprop_anc0 LAprop_anc1   beta_anc0    beta_anc1    se_anc0
-#> 1 0.2916667       0.520       0.480  0.15165327 -0.074057144 0.09800820
-#> 2 0.4408602       0.535       0.465  0.11108844 -0.008669883 0.13797109
-#> 3 0.3367347       0.510       0.490 -0.01886665  0.023525459 0.11604381
-#> 4 0.2524272       0.485       0.515  0.06819441 -0.002498296 0.09589733
-#> 5 0.4678899       0.455       0.545  0.08477358  0.040311881 0.13228691
+#>   CHROM  POS        ID REF ALT main_N    AF   AF_anc0   AF_anc1 LAprop_anc0
+#> 1  chr1 1000 rs0000001   A   G    100 0.300 0.3076923 0.2916667       0.520
+#> 2  chr1 1010 rs0000002   A   G    100 0.315 0.2056075 0.4408602       0.535
+#> 3  chr1 1020 rs0000003   A   G    100 0.370 0.4019608 0.3367347       0.510
+#> 4  chr1 1030 rs0000004   A   G    100 0.380 0.5154639 0.2524272       0.485
+#> 5  chr1 1040 rs0000005   A   G    100 0.380 0.2747253 0.4678899       0.455
+#>   LAprop_anc1 has_sumstats joint_pval   beta_anc0    beta_anc1    se_anc0
+#> 1       0.480         TRUE 0.07081671  0.15126161 -0.074355606 0.09808959
+#> 2       0.465         TRUE 0.33232327  0.10972000 -0.010130831 0.13797917
+#> 3       0.490         TRUE 0.97026128 -0.01877639  0.023622758 0.11605132
+#> 4       0.515         TRUE 0.50429383  0.06558233 -0.004910517 0.09617882
+#> 5       0.545         TRUE 0.02482169  0.08358498  0.038359453 0.13233995
 #>      se_anc1 pval_anc0 pval_anc1  LAeff_anc0 LAse_anc0 LApval_anc0
-#> 1 0.12161558 0.1217782 0.5425612 -0.07223941 0.1200606   0.5473798
-#> 2 0.09677068 0.4207289 0.9286114 -0.08770070 0.1318639   0.5059961
-#> 3 0.10977918 0.8708475 0.8303147 -0.04317887 0.1396011   0.7570919
-#> 4 0.16867080 0.4770106 0.9881824 -0.05379375 0.1253552   0.6678283
-#> 5 0.09816028 0.5216323 0.6813115 -0.03541323 0.1354502   0.7937468
+#> 1 0.12165546 0.1230551 0.5410683 -0.07242432 0.1200710   0.5463896
+#> 2 0.09677092 0.4265016 0.9166227 -0.08759977 0.1318657   0.5064915
+#> 3 0.10976688 0.8714682 0.8296048 -0.04316449 0.1396011   0.7571703
+#> 4 0.16844972 0.4953154 0.9767440 -0.05330306 0.1253610   0.6706934
+#> 5 0.09809906 0.5276529 0.6957768 -0.03550374 0.1354551   0.7932389
 #>   fallback_used
 #> 1         FALSE
 #> 2         FALSE
@@ -780,9 +802,9 @@ dim(results)
 # List all column names
 colnames(results)
 #>  [1] "CHROM"         "POS"           "ID"            "REF"          
-#>  [5] "ALT"           "main_N"        "AF"            "joint_pval"   
-#>  [9] "has_sumstats"  "AF_anc0"       "AF_anc1"       "LAprop_anc0"  
-#> [13] "LAprop_anc1"   "beta_anc0"     "beta_anc1"     "se_anc0"      
+#>  [5] "ALT"           "main_N"        "AF"            "AF_anc0"      
+#>  [9] "AF_anc1"       "LAprop_anc0"   "LAprop_anc1"   "has_sumstats" 
+#> [13] "joint_pval"    "beta_anc0"     "beta_anc1"     "se_anc0"      
 #> [17] "se_anc1"       "pval_anc0"     "pval_anc1"     "LAeff_anc0"   
 #> [21] "LAse_anc0"     "LApval_anc0"   "fallback_used"
 ```
@@ -792,22 +814,24 @@ colnames(results)
 A practical way to assess TLS-Tractor’s transportability assumption is
 to test for effect heterogeneity between the internal and external
 cohorts. Specifically, - from the internal cohort, obtain effect
-estimates $\beta_{1}$ and standard errors $SE_{1}$ for each SNP from a
+estimates $`\beta_1`$ and standard errors $`SE_1`$ for each SNP from a
 standard GWAS model (fitted using tools such as PLINK2) - from the
-external GWAS summary statistics, obtain effect estimates $\beta_{2}$
-and standard errors $SE_{2}$ for the same SNPs (these should already be
+external GWAS summary statistics, obtain effect estimates $`\beta_2`$
+and standard errors $`SE_2`$ for the same SNPs (these should already be
 available from the munged summary statistics file)
 
 For each SNP, test whether the effect sizes are consistent across
 cohorts using:
-$$z = \frac{\beta_{1} - \beta_{2}}{\sqrt{SE_{1}^{2} + SE_{2}^{2}}}$$
+``` math
+z = \frac{\beta_1 - \beta_2}{\sqrt{SE_1^2 + SE_2^2}}
+```
 
-Under the null hypothesis $H_{0}:\beta_{1} = \beta_{2}$, the $z$
+Under the null hypothesis $`H_0: \beta_1 = \beta_2`$, the $`z`$
 statistic approximately follows a standard normal distribution, assuming
 the two estimates are independent. A two-sided p-value can be computed
 accordingly. This is a Wald test for heterogeneity between two
 independent estimates, and is equivalent to Cochran’s Q test in the
-special case of two studies (i.e., $Q = z^{2}$).
+special case of two studies (i.e., $`Q = z^2`$).
 
 After computing p-values genome-wide, a QQ plot can be used to assess
 calibration of the heterogeneity test. If the transportability
@@ -817,6 +841,7 @@ distribution (i.e., align with the diagonal). Systematic deviations may
 indicate violations of the assumption.
 
 ``` r
+
 # Example workflow:
 # 1) Run standard GWAS in the internal cohort and obtain per-SNP effect size
 #    (beta_1) and standard error (se_1).
@@ -872,6 +897,7 @@ abline(0, 1, col = "red", lwd = 2)
 Use `?` to inspect full documentation.
 
 ``` r
+
 ?tlstractor::tlstractor
 ```
 
@@ -881,6 +907,7 @@ The code chunk below illustrates the full workflow for simulated binary
 data, from tract extraction to the final TLS-Tractor output.
 
 ``` r
+
 # Get path to tutorial data included in the package
 data_dir <- system.file("extdata", package = "tlstractor")
 
@@ -940,6 +967,7 @@ Remove all temporary tutorial outputs created under
 [`tempdir()`](https://rdrr.io/r/base/tempfile.html).
 
 ``` r
+
 unlink(file.path(tempdir(), "tlstractor_tutorial"),
        recursive = TRUE, force = TRUE)
 ```

@@ -23,8 +23,8 @@ tlstractor(
   snp_count = NULL,
   n_cores = 1L,
   chunk_size = 1024L,
-  local_ancestry_mac_threshold = 20L,
-  use_fast_version = TRUE
+  mac_threshold = 20L,
+  use_fast_version = FALSE
 )
 ```
 
@@ -105,7 +105,7 @@ tlstractor(
   Default is 1024; larger values may improve speed but increase memory
   usage.
 
-- local_ancestry_mac_threshold:
+- mac_threshold:
 
   Integer; ancestry-specific minor-allele count threshold. SNPs with any
   ancestry-specific MAC below this threshold are skipped. Skipped SNPs
@@ -120,11 +120,9 @@ tlstractor(
   standard GWAS model (phenotype ~ SNP dosage + covariates) for any
   single SNP, so that estimated covariate effects from the null model
   can be reused across variants to reduce computation. The fast mode can
-  provide a substantial speedup with minimal loss of accuracy. Default
-  is `TRUE` (recommended for large datasets). Setting `FALSE` fources
-  the full per-variant fitting path, which is generally more robust but
-  substantially slower when covariates are included. If no covariates
-  are provided, fast mode is automatically disabled.
+  provide a moderate speedup with minimal loss of accuracy. Default is
+  `FALSE`. If no covariates are provided, fast mode is automatically
+  disabled.
 
 ## Value
 
@@ -132,11 +130,14 @@ Invisibly returns `NULL`. Writes gzipped GWAS results to
 `<output_prefix>.txt.gz`. The output includes:
 
 - Variant metadata: `CHROM`, `POS`, `ID`, `REF`, `ALT`, `main_N` (sample
-  size in the main/internal study)
+  size in the main/internal study). When `method = "logistic"`:
+  `main_N_case`, `main_N_control`
 
 - Frequency and ancestry summaries: `AF` (overall allele frequency),
   `AF_anc*` (ancestry-specific allele frequency), `LAprop_anc*`
-  (local-ancestry-specific haplotype proportion)
+  (local-ancestry-specific haplotype proportion). When
+  `method = "logistic"`: `AF_case_anc*`, `AF_control_anc*`,
+  `LAprop_case_anc*`, `LAprop_control_anc*`
 
 - Analysis metadata: `has_sumstats` (indicates whether external summary
   statistics were available), `fallback_used` (indicates whether QR
@@ -170,5 +171,6 @@ are still analyzed using the Tractor model with individual-level data
 only.
 
 To perform Tractor anlysis on all SNPs using only the main study, set
-`sumstats_path` to a file with one tab-delimited header line containing:
-`CHR`, `POS`, `ID`, `REF`, `ALT`, `BETA`, `SE`, and `GDS_ID`.
+`sumstats_path` to a header-only tab-delimited file containing a single
+line with column names: `CHR`, `POS`, `ID`, `REF`, `ALT`, `BETA`, `SE`,
+and `GDS_ID`.
