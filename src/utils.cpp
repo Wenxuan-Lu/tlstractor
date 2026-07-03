@@ -3088,7 +3088,7 @@ static inline void logistic_mu_stable_eigen(const Eigen::Ref<const Eigen::Vector
 
 // Numerically stable binomial deviance using softplus trick
 // deviance = 2 * sum(max(0,eta) + log(1+exp(-|eta|)) - y*eta)
-// This is more efficient and equally stable as the previous log-sum-exp approach
+// This is more efficient and equally stable as the log-sum-exp approach
 static inline double binom_deviance_eigen(const Eigen::Ref<const Eigen::VectorXd>& y,
                                           const Eigen::Ref<const Eigen::VectorXd>& eta) {
   double dev = 0.0;

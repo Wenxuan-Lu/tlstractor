@@ -91,9 +91,9 @@ Invisibly returns \code{NULL}. Writes gzipped GWAS results to
 \item Variant metadata: \code{CHROM}, \code{POS}, \code{ID}, \code{REF}, \code{ALT}, \code{main_N}
 (sample size in the main/internal study). When \code{method = "logistic"}:
 \code{main_N_case}, \code{main_N_control}
-\item Frequency and ancestry summaries: \code{AF} (overall allele frequency),
-\verb{AF_anc*} (ancestry-specific allele frequency), \verb{LAprop_anc*}
-(local-ancestry-specific haplotype proportion). When
+\item Internal-cohort frequency and ancestry summaries: \code{AF} (overall
+allele frequency), \verb{AF_anc*} (ancestry-specific allele frequency),
+\verb{LAprop_anc*} (local-ancestry-specific haplotype proportion). When
 \code{method = "logistic"}: \verb{AF_case_anc*}, \verb{AF_control_anc*},
 \verb{LAprop_case_anc*}, \verb{LAprop_control_anc*}
 \item Analysis metadata: \code{has_sumstats} (indicates whether external

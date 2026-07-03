@@ -50,9 +50,9 @@
 #'     \item Variant metadata: `CHROM`, `POS`, `ID`, `REF`, `ALT`, `main_N`
 #'       (sample size in the main/internal study). When `method = "logistic"`:
 #'       `main_N_case`, `main_N_control`
-#'     \item Frequency and ancestry summaries: `AF` (overall allele frequency),
-#'       `AF_anc*` (ancestry-specific allele frequency), `LAprop_anc*`
-#'       (local-ancestry-specific haplotype proportion). When
+#'     \item Internal-cohort frequency and ancestry summaries: `AF` (overall 
+#'       allele frequency), `AF_anc*` (ancestry-specific allele frequency),
+#'       `LAprop_anc*` (local-ancestry-specific haplotype proportion). When
 #'       `method = "logistic"`: `AF_case_anc*`, `AF_control_anc*`,
 #'       `LAprop_case_anc*`, `LAprop_control_anc*`
 #'     \item Analysis metadata: `has_sumstats` (indicates whether external
@@ -692,7 +692,7 @@ tlstractor <- function(gds_path, sumstats_path, method, cond_local,
             worker_init_fn <- getFromNamespace("worker_init", pkg)
 
             # Save worker state in package-private worker storage so it persists
-            # across all parLapplyLB task invocations handled by that worker.
+            # across all parLapplyLB/parLapply task invocations handled by that worker.
             pkg_env$worker_state <- worker_init_fn(
                 gds_path = gds_path,
                 ids_in_gds = ids_in_gds,
@@ -729,7 +729,7 @@ tlstractor <- function(gds_path, sumstats_path, method, cond_local,
         case_idx = case_idx
     )
     
-    # Run tasks in parallel with dynamic scheduling
+    # Run tasks in parallel
     message("Running TLS-Tractor analysis in parallel...")
     results <- parallel::parLapply(
         cl,
