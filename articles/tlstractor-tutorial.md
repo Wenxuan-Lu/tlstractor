@@ -202,7 +202,7 @@ gds <- gdsfmt::openfn.gds(gds_path, readonly = TRUE)
 
 # Display the GDS structure
 print(gds)
-#> File: /tmp/Rtmpuqj5lL/tlstractor_tutorial/linear/tracts/simulate_linear.flare.gds (3.5K)
+#> File: /tmp/RtmpNA4T4A/tlstractor_tutorial/linear/tracts/simulate_linear.flare.gds (3.5K)
 #> +    [  ]
 #> |--+ sample.id   { Str8 100 ZIP_ra(35.0%), 287B }
 #> |--+ snp.chromosome   { Str8 5 ZIP_ra(104.0%), 33B }
@@ -556,7 +556,7 @@ munge_sumstats(
 #> 0 rows excluded: invalid N values.
 #> 0 rows excluded: invalid AF values.
 #> Variants retained after QC and matching: 5
-#> Munged summary statistics written to: /tmp/Rtmpuqj5lL/tlstractor_tutorial/linear/munged_sumstats/external_gwas_sumstats_munged.txt
+#> Munged summary statistics written to: /tmp/RtmpNA4T4A/tlstractor_tutorial/linear/munged_sumstats/external_gwas_sumstats_munged.txt
 ```
 
 Preview the munged summary statistics.
@@ -713,14 +713,14 @@ tlstractor(
 #> Loading summary statistics...
 #> Adjusting chunk_size from 1024 to 5 to ensure enough tasks for 1 cores.
 #> Parallel setup: using 1 of 4 available cores. Planned 1 tasks to process SNPs [1, 5] (5 total). Each task handles up to 5 SNPs (last task may be smaller). Genotypes are read in chunks of 5 SNPs within each task.
-#> Scratch directory: /tmp/Rtmpuqj5lL/tlstractor_tutorial/linear/results/tlstractor_linear_14247_20260703_051300_tmp
-#> Output filepath: /tmp/Rtmpuqj5lL/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
+#> Scratch directory: /tmp/RtmpNA4T4A/tlstractor_tutorial/linear/results/tlstractor_linear_14304_20260703_053038_tmp
+#> Output filepath: /tmp/RtmpNA4T4A/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
 #> Initializing parallel cluster...
 #> Running TLS-Tractor analysis in parallel...
 #> Merging results...
 #> Cleaning up temporary files...
 #> TLS-Tractor analysis complete!
-#> Results written to: /tmp/Rtmpuqj5lL/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
+#> Results written to: /tmp/RtmpNA4T4A/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz
 ```
 
 ### Output interpretation
@@ -832,11 +832,11 @@ to test for effect-size heterogeneity between the internal and external
 cohorts. Specifically, for each SNP:
 
 1.  From the internal cohort, obtain the standard GWAS effect estimate
-    $`\hat{\beta}_1`$ and standard error $`se_1`$, for example using
+    $`\hat{\beta}_{1}`$ and standard error $`se_1`$, for example using
     PLINK2 or another GWAS software.
 
 2.  From the external standard GWAS summary statistics, obtain the
-    corresponding effect size estimate $`\hat{\beta}_2`$ and standard
+    corresponding effect size estimate $`\hat{\beta}_{2}`$ and standard
     error $`se_2`$.
 
 For each SNP, test whether the effect estimates are consistent across
