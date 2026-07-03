@@ -133,9 +133,9 @@ Invisibly returns `NULL`. Writes gzipped GWAS results to
   size in the main/internal study). When `method = "logistic"`:
   `main_N_case`, `main_N_control`
 
-- Frequency and ancestry summaries: `AF` (overall allele frequency),
-  `AF_anc*` (ancestry-specific allele frequency), `LAprop_anc*`
-  (local-ancestry-specific haplotype proportion). When
+- Internal-cohort frequency and ancestry summaries: `AF` (overall allele
+  frequency), `AF_anc*` (ancestry-specific allele frequency),
+  `LAprop_anc*` (local-ancestry-specific haplotype proportion). When
   `method = "logistic"`: `AF_case_anc*`, `AF_control_anc*`,
   `LAprop_case_anc*`, `LAprop_control_anc*`
 

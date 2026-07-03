@@ -1,23 +1,29 @@
 # tlstractor
 
 The R package **tlstractor** implements **TLS-Tractor** (**T**ransfer
-**L**earning of **S**ummary Statistics to **Tractor**), a transfer
-learning framework to improve the power of local ancestry-aware
-genome-wide association studies (GWAS) in admixed populations. A common
-practical challenge in local ancestry-aware GWAS is limited sample size.
-Standard GWAS can scale by meta-analyzing summary statistics across
-cohorts, but local ancestry-aware analyses typically require
-individual-level data and cannot directly use existing summary
-statistics from other cohorts. TLS-Tractor addresses this gap by
-combining internal individual-level data with external GWAS summary
-statistics to estimate ancestry-specific genetic effects, with optional
-adjustment for local ancestry. Core computational steps are implemented
-in C++ to keep analyses efficient and scalable for large datasets. The
-method assumes unrelated individuals in the internal cohort, no sample
-overlap between internal and external cohorts, and comparable admixture
-profiles across cohorts.
+**L**earning of **S**ummary Statistics to **Tractor**), a
+transfer-learning framework for improving the power of local
+ancestry-aware genome-wide association studies (GWAS) in admixed
+populations. TLS-Tractor combines internal individual-level
+admixed-cohort data with external standard GWAS summary statistics to
+improve ancestry-specific effect estimation and overall association
+testing.
 
-Last updated: March 29, 2026
+[Tractor](https://www.nature.com/articles/s41588-020-00766-y) is a local
+ancestry-aware GWAS method that estimates ancestry-specific genetic
+effects and provides an overall test of genetic association, but its
+power is limited by the sample size of available admixed cohorts.
+Standard GWAS summary statistics are available at a much larger scale,
+but they cannot be directly incorporated into Tractor because the model
+parameterization differs. TLS-Tractor bridges this gap by transferring
+information from external standard GWAS summary statistics into the
+Tractor framework.
+
+Core computational steps are implemented in C++ for efficient analysis
+of large datasets. See [Key assumptions](#key-assumptions) before
+applying the method.
+
+Last updated: July 2, 2026
 
 Current version: 0.0.0.9000 (in development)
 
@@ -25,32 +31,36 @@ Current version: 0.0.0.9000 (in development)
 
 - [Installation](#installation)
 - [Quick start](#quick-start)
+- [Key assumptions](#key-assumptions)
+- [Tutorials and background](#tutorials-and-background)
+- [Common usage notes](#common-usage-notes)
 - [Installation troubleshooting](#installation-troubleshooting)
-- [Bug reports](#bug-reports)
+- [Citation](#citation)
+- [Bug reports and questions](#bug-reports-and-questions)
 - [License](#license)
 
 ## Installation
 
-### Optional pre-setup (Conda-based R only)
+`tlstractor` requires **R 4.5.0 or later**.
 
-If you’re not using conda, skip this subsection and continue to the
-install options below.
+### For Conda users only
 
-Create and use a dedicated conda environment for tlstractor before
-installation:
+If you are not using Conda, skip this subsection and continue to the
+installation options below.
+
+To install `tlstractor` in a dedicated Conda environment, run:
 
 ``` bash
-conda create -n r-tlstractor -c conda-forge r-base r-essentials -y
+conda create -n r-tlstractor -c conda-forge r-base -y
 conda activate r-tlstractor
-conda install -c conda-forge compilers make pkg-config zlib
+conda install -c conda-forge compilers make pkg-config zlib -y
 ```
 
-### Install tlstractor
+### Install `tlstractor`
 
-#### Option 1) Install the development version (GitHub)
+#### Option 1: Install the development version from GitHub
 
-Use this option for the latest features and fixes. Installation may take
-a few minutes.
+Use this option to install the current development version.
 
 ``` r
 
@@ -58,81 +68,67 @@ install.packages("pak")
 pak::pkg_install("Wenxuan-Lu/tlstractor")
 ```
 
-#### Option 2) Install a specific release (source tarball)
+#### Option 2: Install a specific release
 
-Use this option for a fixed, reproducible version.
+Use this option to install a fixed, reproducible release. Replace
+`v0.1.0` with the desired release tag.
 
 ``` r
 
 install.packages("pak")
-pak::pkg_install("https://github.com/Wenxuan-Lu/tlstractor/releases/download/vX.Y.Z/tlstractor_X.Y.Z.tar.gz")
+pak::pkg_install("Wenxuan-Lu/tlstractor@v0.1.0")
 ```
 
-If installation fails or you want to build vignettes locally, see
-[Installation troubleshooting](#installation-troubleshooting).
+If installation fails, see [Installation
+troubleshooting](#installation-troubleshooting).
 
 [Back to Contents](#contents)
 
 ## Quick start
 
-TLS-Tractor extends [Tractor](https://github.com/Atkinson-Lab/Tractor)
-by incorporating external GWAS summary statistics into local
-ancestry-aware association analysis. For background on GWAS in admixed
-populations and local ancestry inference, see the [Tractor
-tutorial](https://atkinson-lab.github.io/Tractor-tutorial/).
+This package implements a three-step workflow that is fully compatible
+with [Tractor scripts](https://github.com/Atkinson-Lab/Tractor) but
+substantially faster. The three steps are: extracts local ancestry
+tracts, harmonizes external standard GWAS summary statistics, and runs
+TLS-Tractor.
 
-This package follows a 3-step workflow: extract local-ancestry tracts,
-harmonize external GWAS summary statistics, then combine the two data
-sources and run local ancestry-aware association analysis.
-
-Our implementation of the first step
-([`extract_tracts()`](https://wenxuan-lu.github.io/tlstractor/reference/extract_tracts.md)
-/
-[`extract_tracts_flare()`](https://wenxuan-lu.github.io/tlstractor/reference/extract_tracts_flare.md))
-is workflow-compatible with Tractor. It is designed as a drop-in
-replacement and implemented in C++ for substantially faster tract
-extraction. For workflows that need tract files in different formats, we
-provide functions
-[`convert_gds_to_txt()`](https://wenxuan-lu.github.io/tlstractor/reference/convert_gds_to_txt.md)
-and
-[`convert_txt_to_gds()`](https://wenxuan-lu.github.io/tlstractor/reference/convert_txt_to_gds.md)
-for quick format conversion.
-
-We provide a minimal runnable script below for illustration. For a full
-pipeline walkthrough, see the [TLS-Tractor
+The example below is a minimal runnable template. File names and column
+names are illustrative. Please adapt them to your own data. For a
+complete pipeline walkthrough, see the [TLS-Tractor
 tutorial](https://wenxuan-lu.github.io/tlstractor/).
 
-**Required inputs:**
+### Required inputs
 
 Individual-level data from the main study / internal cohort:
 
-- Phased genotypes with local ancestry inference results (choose one):
+- Phased genotypes with local ancestry inference results, provided in
+  one of the following formats:
 
-  - If using RFMix2/Gnomix for LAI: `cohort.vcf(.gz)` +
-    `cohort.msp.tsv(.gz)`
+  - For RFMix2/Gnomix local ancestry inference:
 
-    - `cohort.vcf(.gz)`: phased genotypes (`GT`, e.g. `0|1`)
+    - `cohort.vcf(.gz)`: phased genotypes, with `GT` encoded as phased
+      calls such as `0|1`
 
     - `cohort.msp.tsv(.gz)`: local ancestry labels
 
-  - If using FLARE for LAI: `cohort.vcf(.gz)`
+  - For FLARE local ancestry inference:
 
-    - FLARE output VCF containing both phased genotypes and local
-      ancestry labels
+    - `cohort.vcf(.gz)`: FLARE output VCF containing both phased
+      genotypes and local ancestry labels
 
-- Phenotype file: `pheno.txt` with columns `id`, `pheno`
+- Phenotype file: `pheno.txt` with columns `id` and `pheno`
 
-- Optional covariates: `covariates.txt` with columns `id`, `cov1`,
-  `cov2`, `cov3`
+- Optional covariate file: `covariates.txt` with columns such as `id`,
+  `cov1`, `cov2`, and `cov3`
 
-Summary-level data from an external cohort:
+Summary-level data from the external cohort:
 
-- External GWAS summary statistics (from a standard GWAS model):
-  `external_sumstats.txt` with columns `CHR`, `POS`, `ID`, `REF`, `ALT`,
-  `BETA`, `SE`, and an optional column `AF`.
+- External standard GWAS summary statistics: `external_sumstats.txt`
+  with columns `CHR`, `POS`, `ID`, `REF`, `ALT`, `BETA`, `SE`, and
+  optional columns `N`, `AF`, `N_CASE`, `N_CONTROL`, `AF_CASE`, and
+  `AF_CONTROL`.
 
-Filenames and column names are illustrative; map them to your own data
-schema.
+### Minimal example
 
 ``` r
 
@@ -140,7 +136,7 @@ library(tlstractor)
 
 # 1) Extract tracts (choose one option)
 
-# Option A: phased VCF + MSP (RFMix2/Gnomix)
+# Option A: phased VCF + MSP file from RFMix2/Gnomix
 extract_tracts(
   vcf_path = "cohort.vcf.gz",
   msp_path = "cohort.msp.tsv",
@@ -155,7 +151,7 @@ extract_tracts(
 #   output_formats = "gds"
 # )
 
-# 2) QC + align external summary statistics
+# 2) Harmonize external standard GWAS summary statistics
 munge_sumstats(
   gds_path = "cohort.gds",
   sumstats_path = "external_sumstats.txt",
@@ -167,7 +163,7 @@ munge_sumstats(
 tlstractor(
   gds_path = "cohort.gds",
   sumstats_path = "external_sumstats_munged.txt",
-  method = "linear", # or "logistic"
+  method = "linear", # use "logistic" for binary traits
   cond_local = TRUE, # whether to condition on local ancestry terms
   pheno_path = "pheno.txt",
   pheno_id_col = "id",
@@ -180,7 +176,7 @@ tlstractor(
 )
 ```
 
-**Main outputs:**
+### Main outputs
 
 1.  **Tracts GDS** (`cohort.gds`) — HDF5-based GDS file containing:
 
@@ -188,74 +184,179 @@ tlstractor(
     - `snp.chromosome`, `snp.position`, `snp.id`, `snp.ref`, `snp.alt` —
       variant metadata
     - `dosage/anc0..ancK`, `hapcount/anc0..ancK` — ancestry-specific
-      dosage (0, 1, 2) and local ancestry haplotype count (0, 1, 2)
-      matrices
+      alternative-allele dosage (0, 1, 2) and local ancestry haplotype
+      count (0, 1, 2) matrices
 
 2.  **Munged summary statistics** (`external_sumstats_munged.txt`) —
-    Tab-delimited file with columns:
+    tab-delimited file with columns:
 
     - `CHR`, `POS`, `ID`, `REF`, `ALT` — variant information
     - `BETA`, `SE` — effect size and standard error
-    - `AF` (optional) — allele frequency if available
-    - `GDS_ID` — internal index linking to GDS file variant
+    - Optional columns (when provided): `N`, `AF`, `N_CASE`,
+      `N_CONTROL`, `AF_CASE`, `AF_CONTROL` — allele frequencies and
+      sample sizes
+    - `GDS_ID` — internal variant index linking the summary statistics
+      to the GDS file
 
-3.  **TLS-Tractor results** (`tlstractor.txt.gz`) — Gzip-compressed
-    tab-delimited file with output columns organized as follows:
+3.  **TLS-Tractor results** (`tlstractor.txt.gz`) — gzip-compressed
+    tab-delimited file with columns:
 
-    **Variant metadata:**
+    **Variant metadata and internal-cohort summaries**
 
-    - `CHROM`, `POS`, `ID`, `REF`, `ALT` — Variant information
-    - `main_N` — Number of samples analyzed from the internal/main study
+    - `CHROM`, `POS`, `ID`, `REF`, `ALT` — variant information
+    - `main_N` — number of internal-cohort samples analyzed
+    - `main_N_case`, `main_N_control` — number of internal-cohort cases
+      and controls (logistic analysis only)
+    - `AF` — overall allele frequency
+    - `AF_anc*` — ancestry-specific allele frequencies (e.g., `AF_anc0`,
+      `AF_anc1` for two-way admixture)
+    - `AF_case_anc*`, `AF_control_anc*` — ancestry-specific allele
+      frequencies in cases and controls (logistic analysis only)
+    - `LAprop_anc*` — local ancestry proportions at the variant
+    - `LAprop_case_anc*`, `LAprop_control_anc*` — local ancestry
+      proportions in cases and controls (logistic analysis only)
 
-    **Allele frequency and ancestry composition:**
+    **Analysis metadata**
 
-    - `AF` — Overall allele frequency (calculated from internal cohort)
-    - `AF_anc*` — Ancestry-specific allele frequency for each ancestry
-      (e.g., `AF_anc0`, `AF_anc1` for two-way admixture)
-    - `LAprop_anc*` — Proportion of local ancestry for each ancestry
-      (reflects the ancestry makeup at this locus)
+    - `has_sumstats` — logical indicator (`TRUE`/`FALSE`) of whether
+      external summary statistics were available for the variant. When
+      `FALSE`, the variant was analyzed using internal data alone.
+    - `fallback_used` — logical indicator (`TRUE`/`FALSE`) of whether QR
+      decomposition fallback was used during computation. When `TRUE`,
+      results may have reduced numerical stability and should be
+      interpreted cautiously.
 
-    **Analysis metadata:**
+    **Association results**
 
-    - `has_sumstats` — Logical indicator (`TRUE`/`FALSE`) of whether
-      external summary statistics are available for this variant. When
-      `FALSE`, the variant was analyzed using internal data alone
-    - `fallback_used` — Logical indicator (`TRUE`/`FALSE`) of whether QR
-      decomposition fallback was used during statistical estimation.
-      When `TRUE`, results may have reduced numerical stability and
-      should be interpreted cautiously
-
-    **Association results (main output):**
-
-    - `joint_pval` — Joint p-value for testing all ancestry-specific SNP
+    - `joint_pval` — joint p-value testing all ancestry-specific SNP
       dosage effects
-    - `beta_anc*` — Effect size (linear coefficient for linear
-      phenotype, log odds for logistic phenotype) for each ancestry
-    - `se_anc*` — Standard error of the ancestry-specific effect size
-    - `pval_anc*` — P-value for each ancestry-specific effect
+    - `beta_anc*` — ancestry-specific effect estimates (linear
+      coefficients for continuous traits and log odds ratios for binary
+      traits)
+    - `se_anc*` — standard errors of ancestry-specific effects
+    - `pval_anc*` — p-values for ancestry-specific effects
 
-    **Local ancestry effects (only present when `cond_local=TRUE`):**
+    **Local ancestry effects (only present when `cond_local=TRUE`)**
 
-    - `LAeff_anc*` — Effect size of the local ancestry term for each
-      ancestry
-    - `LAse_anc*` — Standard error of the local ancestry effect
-    - `LApval_anc*` — P-value for the local ancestry effect
+    - `LAeff_anc*` — local ancestry effect estimates
+    - `LAse_anc*` — standard errors of local ancestry effects
+    - `LApval_anc*` — p-values for local ancestry effect
 
-**Next:**
+[Back to Contents](#contents)
 
-- Full pipeline walkthrough: [TLS-Tractor
-  tutorial](https://wenxuan-lu.github.io/tlstractor/)
+## Key assumptions
 
-- Tutorial on statistical phasing and local ancestry inference: [Tractor
-  tutorial](https://atkinson-lab.github.io/Tractor-tutorial/)
+TLS-Tractor relies on three core assumptions:
 
-- Function help in R:
-  [`?extract_tracts`](https://wenxuan-lu.github.io/tlstractor/reference/extract_tracts.md),
-  [`?extract_tracts_flare`](https://wenxuan-lu.github.io/tlstractor/reference/extract_tracts_flare.md),
-  [`?convert_gds_to_txt`](https://wenxuan-lu.github.io/tlstractor/reference/convert_gds_to_txt.md),
-  [`?convert_txt_to_gds`](https://wenxuan-lu.github.io/tlstractor/reference/convert_txt_to_gds.md),
-  [`?munge_sumstats`](https://wenxuan-lu.github.io/tlstractor/reference/munge_sumstats.md),
-  [`?tlstractor`](https://wenxuan-lu.github.io/tlstractor/reference/tlstractor.md)
+1.  **Unrelated individuals in the internal cohort.**
+
+2.  **No sample overlap between internal and external cohorts.**
+
+3.  **Comparable admixture profiles across internal and external
+    cohorts.**
+
+    TLS-Tractor relies on a transportability assumption equivalent to
+    fixed-effect GWAS meta-analysis: after appropriate covariate
+    adjustment, the standard GWAS effect that would be estimated in the
+    internal cohort and the standard GWAS effect estimated in the
+    external cohort target the same underlying genetic effect, with
+    observed differences arising from sampling variation rather than
+    true heterogeneity. In practice, this requires comparable admixture
+    profiles across cohorts, including the same ancestral components and
+    similar global ancestry proportions.
+
+In addition, common GWAS meta-analysis considerations still apply. For
+example, the internal and external datasets should have compatible
+allele coding, genome build, trait definition, phenotype curation,
+sample inclusion criteria, and covariate adjustment.
+
+The package tutorial provides recommended checks for these assumptions
+and guidance on interpreting diagnostic results.
+
+[Back to Contents](#contents)
+
+## Tutorials and background
+
+For a complete TLS-Tractor analysis workflow, including input
+preparation, tract extraction, summary-statistic harmonization, model
+fitting, output interpretation, and assumption checks, see:
+
+- [TLS-Tractor tutorial](https://wenxuan-lu.github.io/tlstractor/)
+
+For background on Tractor, statistical phasing, and local ancestry
+inference, see:
+
+- [Tractor tutorial](https://atkinson-lab.github.io/Tractor-tutorial/)
+
+- [Tractor paper](https://www.nature.com/articles/s41588-020-00766-y)
+
+- [Tractor GitHub repository](https://github.com/Atkinson-Lab/Tractor)
+
+Function-level documentation is also available in R:
+[`?extract_tracts`](https://wenxuan-lu.github.io/tlstractor/reference/extract_tracts.md),
+[`?extract_tracts_flare`](https://wenxuan-lu.github.io/tlstractor/reference/extract_tracts_flare.md),
+[`?convert_gds_to_txt`](https://wenxuan-lu.github.io/tlstractor/reference/convert_gds_to_txt.md),
+[`?convert_txt_to_gds`](https://wenxuan-lu.github.io/tlstractor/reference/convert_txt_to_gds.md),
+[`?munge_sumstats`](https://wenxuan-lu.github.io/tlstractor/reference/munge_sumstats.md),
+[`?tlstractor`](https://wenxuan-lu.github.io/tlstractor/reference/tlstractor.md)
+
+[Back to Contents](#contents)
+
+## Common usage notes
+
+### 1. File formats for tract extraction
+
+For tract extraction, `tlstractor` can output three formats: the
+original Tractor text format (`.txt` or `.txt.gz`), ancestry-specific
+VCF files (`.vcf` or `.vcf.gz`), and a compact GDS format (`.gds`).
+
+GDS is the native input format for TLS-Tractor association analysis. It
+stores ancestry-specific allele dosages and local ancestry haplotype
+counts in a single file, reducing storage and simplifying downstream
+analysis compared with the multiple text files used by standard Tractor
+workflows.
+
+The tract-extraction step in `tlstractor` can therefore be used as a
+drop-in replacement for existing Tractor workflows. In our tests, the
+C++ implementation is at least 35 times faster than the original Tractor
+tract-extraction scripts.
+
+If you already have tracts extracted in Tractor-style text format, you
+do not need to re-extract them. You can convert them directly to GDS
+format using
+[`convert_txt_to_gds()`](https://wenxuan-lu.github.io/tlstractor/reference/convert_txt_to_gds.md).
+Similarly, GDS files can be converted back to Tractor-style text format
+using
+[`convert_gds_to_txt()`](https://wenxuan-lu.github.io/tlstractor/reference/convert_gds_to_txt.md).
+
+### 2. Running Tractor with `tlstractor`
+
+In addition to TLS-Tractor analysis, `tlstractor` can fit the Tractor
+model using internal individual-level data. The C++ implementation
+provides substantially shorter runtime and lower memory usage. See
+[`?tlstractor`](https://wenxuan-lu.github.io/tlstractor/reference/tlstractor.md)
+for details.
+
+### 3. Setting the number of cores
+
+[`tlstractor()`](https://wenxuan-lu.github.io/tlstractor/reference/tlstractor.md)
+supports multi-core computation. By default, the package attempts to
+detect the number of available cores and avoid using more cores than
+appropriate for the current computing environment. If core detection
+does not work as expected, you can manually override the detected number
+of available cores:
+
+``` r
+
+# For example, set the number of available cores to 4.
+options(
+  parallelly.availableCores.custom = function() 4L,
+  parallelly.availableCores.methods = "custom"
+)
+```
+
+On shared clusters, make sure this number does not exceed the number of
+cores requested from the scheduler.
 
 [Back to Contents](#contents)
 
@@ -263,12 +364,10 @@ tlstractor(
 
 Read this section only if installation fails.
 
-### 1) Check dependencies first
+### 1. Check R/Bioconductor dependencies
 
-If installation fails, the most common issue is that `gdsfmt` may not
-install correctly during package installation.
-
-Install it explicitly from Bioconductor:
+If installation fails while installing or loading `gdsfmt`, install it
+explicitly from Bioconductor:
 
 ``` r
 
@@ -278,63 +377,84 @@ BiocManager::install("gdsfmt")
 
 Then retry installing `tlstractor`.
 
-### 2) Check system requirements
+### 2. Check system build requirements
 
-This package includes C++ code and links against zlib. Most users will
-not need to do anything.
+`tlstractor` contains C++ code and links against `zlib`. Installation
+may fail if compilers, `make`, `pkg-config`, or the `zlib` development
+files are missing.
 
-#### 2.1) Quick check
+#### Quick check
 
-Run `Sys.which(c("make", "g++", "pkg-config"))` in R. All entries should
-be non-empty.
+Run `Sys.which(c("make", "g++", "pkg-config"))` in R. `make` and `g++`
+should be non-empty. `pkg-config` is recommended because it helps the
+installer locate `zlib`, but installation may still succeed without it
+if `zlib` is available in standard compiler/linker paths.
 
-To check for zlib, run `system("pkg-config --exists zlib") == 0` (skip
-this if `pkg-config` is not installed). This should return `TRUE` if
-zlib is installed.
+To check whether `zlib` is visible through `pkg-config`, run
+`system("pkg-config --exists zlib") == 0` in R. This should return
+`TRUE`. If `pkg-config` is not installed, skip the `zlib` check and
+install the required tools below.
 
-#### 2.2) Install required tools
+#### Install required tools
 
-- **Windows**: install Rtools (matching your R version).
-- **macOS**: run `xcode-select --install`, then
-  `brew install zlib pkg-config`
-- **Debian/Ubuntu**:
-  `sudo apt-get install -y build-essential zlib1g-dev pkg-config`
-- **Fedora/RHEL/CentOS**:
-  `sudo dnf install -y gcc gcc-c++ make zlib-devel pkgconf-pkg-config`
-- **Alpine**: `apk add --no-cache build-base zlib-dev pkgconf`
+- **Windows**: install Rtools matching your R version.
+- **macOS**: run `xcode-select --install`, then install `zlib` and
+  `pkg-config`, for example with `brew install zlib pkg-config`.
+- **Debian/Ubuntu**: run
+  `sudo apt-get install -y build-essential zlib1g-dev pkg-config`.
+- **Fedora/RHEL/CentOS**: run
+  `sudo dnf install -y gcc gcc-c++ make zlib-devel pkgconf-pkg-config`.
+- **Alpine**: run `apk add --no-cache build-base zlib-dev pkgconf`.
 
-#### 2.3) Retry installation
+Then retry installing `tlstractor`.
 
-Retry with `pak::pkg_install("Wenxuan-Lu/tlstractor")` or install a
-release tarball with  
-`pak::pkg_install("https://github.com/Wenxuan-Lu/tlstractor/releases/download/vX.Y.Z/tlstractor_X.Y.Z.tar.gz")`.
+#### Advanced: manual `zlib` configuration
 
-#### 2.4) Advanced: manual zlib configuration
+This is only needed if installation still fails after `zlib` has been
+installed.
 
-Only needed if installation still fails after installing zlib.
+Set `zlib` paths explicitly, replacing the example paths with the
+locations on your system:
 
-Set zlib paths explicitly (replace the paths with your system’s
-locations):
+``` r
 
-`Sys.setenv(ZLIB_CPPFLAGS = "-I/path/include", ZLIB_LIBS = "-L/path/lib -lz")`
+Sys.setenv(
+  ZLIB_CPPFLAGS = "-I/path/to/include",
+  ZLIB_LIBS = "-L/path/to/lib -lz"
+)
+```
 
 Then retry installation.
 
 [Back to Contents](#contents)
 
-## Bug reports
+## Citation
 
-If you encounter a bug or have a feature request, please open an issue
-at <https://github.com/Wenxuan-Lu/tlstractor/issues>.
+The TLS-Tractor manuscript is in preparation. A formal citation will be
+added after the preprint or paper is available.
 
-For other inquiries or feedback, please contact Wenxuan Lu at
-[wlu15@jhu.edu](mailto:%5Bwlu15@jhu.edu%5D).
+TLS-Tractor extends the Tractor framework, so please also cite the
+original Tractor paper:
+
+> Atkinson, E.G., Maihofer, A.X., Kanai, M. et al. Tractor uses local
+> ancestry to enable the inclusion of admixed individuals in GWAS and to
+> boost power. *Nature Genetics* **53**, 195–204 (2021).
+> [Link](https://www.nature.com/articles/s41588-020-00766-y)
+
+[Back to Contents](#contents)
+
+## Bug reports and questions
+
+For bugs, feature requests, usage questions, or other feedback, please
+open a GitHub issue at
+<https://github.com/Wenxuan-Lu/tlstractor/issues>.
 
 [Back to Contents](#contents)
 
 ## License
 
-This package is licensed under the MIT License.
+`tlstractor` is licensed under the MIT License. See
+[LICENSE](https://wenxuan-lu.github.io/tlstractor/LICENSE).
 
 [Back to Contents](#contents)
 

@@ -72,8 +72,8 @@
 </h2>
 <p>This tutorial goes through the end-to-end pipeline to:</p>
 <ol style="list-style-type: decimal">
-<li>extract tracts and ancestry dosages</li>
-<li>munge external GWAS summary statistics</li>
+<li>extract allele and haplotype dosages from local ancestry tracts</li>
+<li>harmonize external standard GWAS summary statistics</li>
 <li>run TLS-Tractor</li>
 </ol>
 <p>Below, we walk through a step-by-step example for a continuous
@@ -152,7 +152,7 @@ encode local ancestry labels for each haplotype.</li>
 <div class="section level3">
 <h3 id="binary-case-inputs">Binary case inputs<a class="anchor" aria-label="anchor" href="#binary-case-inputs"></a>
 </h3>
-<p>The binary simulation has the same file layout with prefix
+<p>The binary example has the same file layout with prefix
 <code>simulate_binary</code>:</p>
 <ol style="list-style-type: decimal">
 <li><code>simulate_binary.phased.vcf</code></li>
@@ -202,7 +202,7 @@ dataset</li>
 <code>output_dir</code>: directory for output files
 (<code>NULL</code> uses the input VCF directory)</li>
 <li>
-<code>output_formats = "gds"</code>: write GDS output required for
+<code>output_formats = "gds"</code>: GDS output required for
 downstream TLS-Tractor steps</li>
 <li>
 <code>chunk_size</code>: number of variants processed per chunk
@@ -241,7 +241,7 @@ dataset</li>
 <code>output_dir</code>: directory for output files
 (<code>NULL</code> uses the input VCF directory)</li>
 <li>
-<code>output_formats = "gds"</code>: write GDS output required for
+<code>output_formats = "gds"</code>: GDS output required for
 downstream TLS-Tractor steps</li>
 <li>
 <code>chunk_size</code>: number of variants processed per chunk
@@ -289,7 +289,7 @@ ancestry</li>
 <span></span>
 <span><span class="co"># Display the GDS structure</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">gds</span><span class="op">)</span></span>
-<span><span class="co">#&gt; File: /tmp/RtmpLAuTAQ/tlstractor_tutorial/linear/tracts/simulate_linear.flare.gds (3.5K)</span></span>
+<span><span class="co">#&gt; File: /tmp/Rtmpu5P45U/tlstractor_tutorial/linear/tracts/simulate_linear.flare.gds (3.5K)</span></span>
 <span><span class="co">#&gt; +    [  ]</span></span>
 <span><span class="co">#&gt; |--+ sample.id   { Str8 100 ZIP_ra(35.0%), 287B }</span></span>
 <span><span class="co">#&gt; |--+ snp.chromosome   { Str8 5 ZIP_ra(104.0%), 33B }</span></span>
@@ -599,32 +599,31 @@ defaults, you can specify the column names using the function arguments:
 <p>QC performed by <code><a href="../reference/munge_sumstats.html">munge_sumstats()</a></code> on GWAS summary
 statistics (applied in order):</p>
 <ol style="list-style-type: decimal">
-<li>REF/ALT checks: keep biallelic SNPs with single-nucleotide
+<li>REF/ALT filtering: keep biallelic SNPs with single-nucleotide
 <code>A/C/G/T</code> alleles and remove the rest</li>
-<li>optional removal of ambiguous SNPs (<code>A/T</code>,
-<code>T/A</code>, <code>C/G</code>, <code>G/C</code>)</li>
-<li>autosome restriction to chromosomes <code>1-22</code> when
+<li>Ambiguous SNP filtering: optionally remove <code>A/T</code>,
+<code>T/A</code>, <code>C/G</code>, and <code>G/C</code> SNPs</li>
+<li>Autosome restriction: keep chromosomes <code>1-22</code> when
 <code>match_by = "CHR-POS"</code>
 </li>
-<li>
-<code>POS &gt; 0</code> when <code>match_by = "CHR-POS"</code>
+<li>Position filtering: require <code>POS &gt; 0</code> when
+<code>match_by = "CHR-POS"</code>
 </li>
-<li>non-missing and non-empty <code>ID</code> when
+<li>ID filtering: require non-missing and non-empty <code>ID</code> when
 <code>match_by = "ID"</code>
 </li>
-<li>duplicate removal by key: unique <code>(CHR, POS)</code> when
-<code>match_by = "CHR-POS"</code>, or unique <code>ID</code> when
+<li>Duplicate removal: keep unique <code>(CHR, POS)</code> pairs when
+<code>match_by = "CHR-POS"</code>, or unique <code>ID</code> values when
 <code>match_by = "ID"</code>
 </li>
-<li>effect/SE checks: <code>BETA != NA</code> and
-<code>SE &gt; 0</code>
+<li>Effect-size and SE filtering: require <code>BETA</code> to be
+non-missing and <code>SE &gt; 0</code>
 </li>
-<li>sample size and AF checks: require <code>N</code>,
+<li>Sample-size and AF filtering: require <code>N</code>,
 <code>N_case</code>, and <code>N_control</code> to be positive when
 present; require <code>AF</code>, <code>AF_case</code>, and
 <code>AF_control</code> to lie in <code>(0, 1)</code> when present</li>
-<li>allele flipping when needed to align with GDS reference allele
-definition</li>
+<li>Allele flipping: align with the GDS reference allele definition</li>
 </ol>
 <p>Output format for munged summary statistics:</p>
 <ul>
@@ -694,7 +693,7 @@ filename without extension)</li>
 <span><span class="co">#&gt; 0 rows excluded: invalid N values.</span></span>
 <span><span class="co">#&gt; 0 rows excluded: invalid AF values.</span></span>
 <span><span class="co">#&gt; Variants retained after QC and matching: 5</span></span>
-<span><span class="co">#&gt; Munged summary statistics written to: /tmp/RtmpLAuTAQ/tlstractor_tutorial/linear/munged_sumstats/external_gwas_sumstats_munged.txt</span></span></code></pre></div>
+<span><span class="co">#&gt; Munged summary statistics written to: /tmp/Rtmpu5P45U/tlstractor_tutorial/linear/munged_sumstats/external_gwas_sumstats_munged.txt</span></span></code></pre></div>
 <p>Preview the munged summary statistics.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">munged_sumstats_preview</span> <span class="op">&lt;-</span> <span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.delim</a></span><span class="op">(</span></span>
@@ -718,114 +717,123 @@ filename without extension)</li>
 <div class="section level2">
 <h2 id="step-3-run-tls-tractor">Step 3: Run TLS-Tractor<a class="anchor" aria-label="anchor" href="#step-3-run-tls-tractor"></a>
 </h2>
-<p>With the individual-level GDS file and phenotype/covariates from the
-internal study, and the munged external GWAS summary statistics, we are
-ready to run TLS-Tractor. TLS-Tractor estimates ancestry-specific
-genetic effects with optional local-ancestry adjustment. The key
-advantage is that although external summary statistics come from
-standard GWAS models, TLS-Tractor strategically leverages them via
-transfer learning to obtain unbiased and efficient estimates for
-ancestry-specific parameters.</p>
-<p>Model assumptions for TLS-Tractor: - Unrelated individuals in the
-internal cohort - No sample overlap between internal and external
-cohorts - <strong>Transportability assumption</strong>: comparable
-admixture profiles across cohorts (e.g., similar ancestral populations
-and proportions). This assumption is testable in practice, and a
-concrete diagnostic workflow is provided in the <a href="#assumption-checking">Assumption checking</a> subsection below.
-Looking ahead, to relax this assumption, the next version of TLS-Tractor
-is planned to support settings where internal and external cohorts share
-the same ancestral populations but have different ancestry
-proportions.</p>
+<p>After preparing the internal-study GDS file, phenotype and covariate
+files, and munged external GWAS summary statistics, we can run
+TLS-Tractor. TLS-Tractor combines internal individual-level data with
+external standard GWAS summary statistics to estimate ancestry-specific
+genetic effects with optional local-ancestry adjustment.</p>
+<p>TLS-Tractor relies on three core assumptions:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Unrelated individuals in the internal
+cohort.</strong></p></li>
+<li><p><strong>No sample overlap between internal and external
+cohorts.</strong></p></li>
+<li>
+<p><strong>Comparable admixture profiles across internal and
+external cohorts.</strong></p>
+<p>TLS-Tractor relies on a <strong>transportability</strong> assumption
+equivalent to fixed-effect GWAS meta-analysis: after appropriate
+covariate adjustment, the standard GWAS effect that would be estimated
+in the internal cohort and the standard GWAS effect estimated in the
+external cohort target the same underlying genetic effect, with observed
+differences arising from sampling variation rather than true
+heterogeneity. In practice, this requires comparable admixture profiles
+across cohorts, including the same ancestral components and similar
+global ancestry proportions.</p>
+</li>
+</ol>
+<p>In addition, common GWAS meta-analysis considerations still apply.
+For example, the internal and external datasets should have compatible
+allele coding, genome build, trait definition, phenotype curation,
+sample inclusion criteria, and covariate adjustment.</p>
+<p>These assumptions should be checked before interpreting TLS-Tractor
+results. In particular, a practical diagnostic workflow for checking the
+transportability assumption is provided in the <a href="#assumption-checking">Assumption checking</a> section below.</p>
+<p>Future versions of TLS-Tractor are planned to relax the
+transportability assumption by supporting settings where the internal
+and external cohorts share the same ancestral components but differ in
+global ancestry proportions.</p>
 <div class="section level3">
 <h3 id="input-parameters">Input parameters<a class="anchor" aria-label="anchor" href="#input-parameters"></a>
 </h3>
 <ul>
 <li>
 <strong><code>gds_path</code></strong>: Path to the GDS file
-generated in Step 1, containing local ancestry and risk allele dosage
-information for the internal cohort.</li>
+generated in Step 1.</li>
 <li>
 <strong><code>sumstats_path</code></strong>: Path to the munged
-external GWAS summary statistics file generated in Step 2, which must be
-harmonized and aligned with the GDS file.</li>
+external GWAS summary statistics file generated in Step 2.</li>
 <li>
-<strong><code>method</code></strong>: Choose <code>"linear"</code>
-for continuous phenotypes or <code>"logistic"</code> for binary
-phenotypes.</li>
+<strong><code>method</code></strong>: Analysis model,
+<code>"linear"</code> for continuous phenotypes or
+<code>"logistic"</code> for binary phenotypes.</li>
 <li>
-<strong><code>cond_local</code></strong>: Set to <code>TRUE</code>
-to condition on local-ancestry terms, which is recommended for most
-admixed population studies. This keeps interpretation of
-ancestry-specific SNP effects consistent with interpretation of the
-marginal effect in single-ancestry GWAS. Set to <code>FALSE</code> to
-estimate ancestry-specific SNP effects without local-ancestry
-adjustment, which can increase power but may be more susceptible to
-confounding by local ancestry.</li>
+<strong><code>cond_local</code></strong>: Local-ancestry adjustment
+flag. Set to <code>TRUE</code> to condition on local-ancestry terms,
+aligning the interpretation of ancestry-specific SNP effects with
+marginal SNP effects from corresponding single-ancestry GWAS. Set to
+<code>FALSE</code> to omit local-ancestry adjustment, which may increase
+power but can be more susceptible to confounding by local ancestry.</li>
 <li>
 <strong><code>pheno_path</code>, <code>pheno_id_col</code>,
-<code>pheno_col</code></strong>: Specify the phenotype file, along with
-the column containing sample IDs and the column containing the phenotype
-values. Sample IDs must match between the GDS file and phenotype file,
-and only the intersecting samples will be used.</li>
+<code>pheno_col</code></strong>: Phenotype file path, sample-ID column,
+and phenotype column. Sample IDs must match the GDS file, and only the
+intersecting samples are used.</li>
 <li>
 <strong><code>covar_path</code>, <code>covar_id_col</code>,
-<code>covar_cols</code></strong>: Optionally provide a covariate file,
-the column containing sample IDs, and a vector of columns to include as
-covariates (e.g., PCs, age, sex). If covariates are supplied, sample IDs
-must match between the GDS file and covariate files, and only the
-intersecting samples will be used. If no covariates are needed, set
+<code>covar_cols</code></strong>: Covariate file path, sample-ID column,
+and covariate columns to include. If no covariates are needed, set
 <code>covar_path = NULL</code>.</li>
 <li>
-<strong><code>output_prefix</code></strong>: Output path prefix for
-result files. TLS-Tractor writes the main result to
-<code>&lt;output_prefix&gt;.txt.gz</code> and may write
+<strong><code>output_prefix</code></strong>: Output prefix for
+result files. TLS-Tractor writes
+<code>&lt;output_prefix&gt;.txt.gz</code> and may also write
 <code>&lt;output_prefix&gt;.excluded_samples.txt</code> when samples are
-dropped from the GDS file during intersection/filtering.</li>
+dropped from the GDS file during intersection or filtering.</li>
 <li>
-<strong><code>scratch_dir</code></strong>: Optional directory for
-temporary per-task files before merge. If <code>NULL</code> (default), a
-run-specific temporary directory is created under
+<strong><code>scratch_dir</code></strong>: Temporary working
+directory for per-task files before merge. If <code>NULL</code>
+(default), a run-specific temporary directory is created under
 <code>dirname(output_prefix)</code> with name
 <code>&lt;basename(output_prefix)&gt;_&lt;pid&gt;_&lt;YYYYmmdd_HHMMSS&gt;_tmp</code>.
 Temporary files are deleted upon successful completion. The directory is
-removed only if it is created by the function.</li>
+removed if it is created by the function.</li>
 <li>
 <strong><code>snp_start</code></strong>: 1-based starting SNP index
-in the GDS file (default <code>1L</code>). Useful when analyzing a
-subset of SNPs.</li>
+in the GDS file (default <code>1L</code>). Useful for analyzing a subset
+of SNPs.</li>
 <li>
 <strong><code>snp_count</code></strong>: Number of SNPs to process
 from <code>snp_start</code>. If <code>NULL</code> (default), analysis
 continues to the end of the GDS file.</li>
 <li>
 <strong><code>n_cores</code></strong>: Number of CPU cores to use
-for parallelization (default <code>1L</code>). Increase to speed up
-runtime but require more memory.</li>
+for parallelization (default <code>1L</code>). More cores can reduce
+runtime but increase memory use.</li>
 <li>
 <strong><code>chunk_size</code></strong>: Number of variants
 processed per chunk per core (default <code>1024L</code>). Larger values
 can improve speed but increase memory usage.</li>
 <li>
-<strong><code>local_ancestry_mac_threshold</code></strong>:
-Ancestry-specific minor-allele count threshold (default
-<code>20L</code>). SNPs with any ancestry-specific MAC below this
-threshold are skipped and returned with <code>NA</code> for inferential
-columns.</li>
+<strong><code>mac_threshold</code></strong>: Ancestry-specific
+minor-allele count threshold (default <code>20L</code>). SNPs with any
+ancestry-specific MAC below this threshold are skipped and returned with
+<code>NA</code> for inferential columns.</li>
 <li>
 <strong><code>use_fast_version</code></strong>: Defaults to
-<code>TRUE</code> (recommended, especially for large datasets). In fast
-mode, TLS-Tractor assumes that the estimated non-genetic covariate
-effects from the null model (<code>phenotype ~ covariates</code>) are
-close to those from the full standard GWAS model
-(<code>phenotype ~ SNP dosage + covariates</code>) for any single SNP,
-so that estimated covariate effects from the null model can be reused
-across variants to reduce computation. The fast mode is substantially
-faster with little loss of accuracy. Set to <code>FALSE</code> to force
-full per-variant fitting when you want maximum robustness. If no
+<code>FALSE</code> (recommended). In fast mode, TLS-Tractor assumes that
+the estimated non-genetic covariate effects from the null model
+(<code>phenotype ~ covariates</code>) are close to those from the full
+standard GWAS model (<code>phenotype ~ SNP dosage + covariates</code>)
+for any single SNP, so that estimated covariate effects from the null
+model can be reused across variants to reduce computation. The fast mode
+can provide a moderate speedup with minimal loss of accuracy. If no
 covariates are provided, fast mode is automatically disabled.</li>
 </ul>
-<p>Run TLS-Tractor using internal individual-level data and the munged
-external summary statistics:</p>
+</div>
+<div class="section level3">
+<h3 id="run-tls-tractor">Run TLS-Tractor<a class="anchor" aria-label="anchor" href="#run-tls-tractor"></a>
+</h3>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create output directory for TLS-Tractor results</span></span>
 <span><span class="va">output_dir_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"tlstractor_tutorial"</span>,</span>
@@ -857,14 +865,14 @@ external summary statistics:</p>
 <span><span class="co">#&gt; Loading summary statistics...</span></span>
 <span><span class="co">#&gt; Adjusting chunk_size from 1024 to 5 to ensure enough tasks for 1 cores.</span></span>
 <span><span class="co">#&gt; Parallel setup: using 1 of 4 available cores. Planned 1 tasks to process SNPs [1, 5] (5 total). Each task handles up to 5 SNPs (last task may be smaller). Genotypes are read in chunks of 5 SNPs within each task.</span></span>
-<span><span class="co">#&gt; Scratch directory: /tmp/RtmpLAuTAQ/tlstractor_tutorial/linear/results/tlstractor_linear_14314_20260630_183911_tmp</span></span>
-<span><span class="co">#&gt; Output filepath: /tmp/RtmpLAuTAQ/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz</span></span>
+<span><span class="co">#&gt; Scratch directory: /tmp/Rtmpu5P45U/tlstractor_tutorial/linear/results/tlstractor_linear_14145_20260703_035340_tmp</span></span>
+<span><span class="co">#&gt; Output filepath: /tmp/Rtmpu5P45U/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz</span></span>
 <span><span class="co">#&gt; Initializing parallel cluster...</span></span>
 <span><span class="co">#&gt; Running TLS-Tractor analysis in parallel...</span></span>
 <span><span class="co">#&gt; Merging results...</span></span>
 <span><span class="co">#&gt; Cleaning up temporary files...</span></span>
 <span><span class="co">#&gt; TLS-Tractor analysis complete!</span></span>
-<span><span class="co">#&gt; Results written to: /tmp/RtmpLAuTAQ/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz</span></span></code></pre></div>
+<span><span class="co">#&gt; Results written to: /tmp/Rtmpu5P45U/tlstractor_tutorial/linear/results/tlstractor_linear.txt.gz</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="output-interpretation">Output interpretation<a class="anchor" aria-label="anchor" href="#output-interpretation"></a>
@@ -874,82 +882,80 @@ external summary statistics:</p>
 columns:</p>
 <ol style="list-style-type: decimal">
 <li>
-<strong>Variant metadata</strong>:
+<p><strong>Variant metadata and internal-cohort
+summaries</strong></p>
 <ul>
 <li>
-<code>CHROM</code>: Chromosome</li>
+<code>CHROM</code>, <code>POS</code>, <code>ID</code>,
+<code>REF</code>, <code>ALT</code> — variant information</li>
 <li>
-<code>POS</code>: Base-pair position</li>
+<code>main_N</code> — number of internal-cohort samples
+analyzed</li>
 <li>
-<code>ID</code>: Variant ID</li>
+<code>main_N_case</code>, <code>main_N_control</code> — number of
+internal-cohort cases and controls (logistic analysis only)</li>
 <li>
-<code>REF</code>: Reference allele</li>
+<code>AF</code> — overall allele frequency</li>
 <li>
-<code>ALT</code>: Alternate allele</li>
+<code>AF_anc*</code> — ancestry-specific allele frequencies (e.g.,
+<code>AF_anc0</code>, <code>AF_anc1</code> for two-way admixture)</li>
 <li>
-<code>main_N</code>: Number of samples analyzed in the internal/main
-study</li>
+<code>AF_case_anc*</code>, <code>AF_control_anc*</code> —
+ancestry-specific allele frequencies in cases and controls (logistic
+analysis only)</li>
+<li>
+<code>LAprop_anc*</code> — local ancestry proportions at the
+variant</li>
+<li>
+<code>LAprop_case_anc*</code>, <code>LAprop_control_anc*</code> —
+local ancestry proportions in cases and controls (logistic analysis
+only)</li>
 </ul>
 </li>
 <li>
-<strong>Frequency and ancestry summaries</strong>:
+<p><strong>Analysis metadata</strong></p>
 <ul>
 <li>
-<code>AF</code>: Overall allele frequency (from internal study)</li>
+<code>has_sumstats</code> — logical indicator
+(<code>TRUE</code>/<code>FALSE</code>) of whether external summary
+statistics were available for the variant. When <code>FALSE</code>, the
+variant was analyzed using internal data alone.</li>
 <li>
-<code>AF_anc*</code>: Ancestry-specific allele frequency for each
-ancestry (e.g., <code>AF_anc0</code>, <code>AF_anc1</code> for two-way
-admixture)</li>
-<li>
-<code>LAprop_anc*</code>: Local ancestry proportion for each
-ancestry</li>
+<code>fallback_used</code> — logical indicator
+(<code>TRUE</code>/<code>FALSE</code>) of whether QR decomposition
+fallback was used during computation. When <code>TRUE</code>, results
+may have reduced numerical stability and should be interpreted
+cautiously.</li>
 </ul>
 </li>
 <li>
-<strong>Analysis metadata</strong>:
+<p><strong>Association results</strong></p>
 <ul>
 <li>
-<code>has_sumstats</code>: Logical indicator of whether external
-summary statistics are available for this variant. Variants without
-summary statistics are analyzed using internal data alone.</li>
-<li>
-<code>fallback_used</code>: Logical indicator of whether QR
-decomposition fallback was used during estimation; when
-<code>TRUE</code>, results may have reduced numerical stability and
-should be interpreted with caution</li>
-</ul>
-</li>
-<li>
-<strong>Association results</strong> (main results):
-<ul>
-<li>
-<code>joint_pval</code>: Joint p-value for testing all
+<code>joint_pval</code> — joint p-value testing all
 ancestry-specific SNP dosage effects</li>
 <li>
-<code>beta_anc*</code>: Effect size (log odds for logistic, linear
-coefficient for linear) for each ancestry</li>
+<code>beta_anc*</code> — ancestry-specific effect estimates (linear
+coefficients for continuous traits and log odds ratios for binary
+traits)</li>
 <li>
-<code>se_anc*</code>: Standard error of the effect size for each
-ancestry</li>
+<code>se_anc*</code> — standard errors of ancestry-specific
+effects</li>
 <li>
-<code>pval_anc*</code>: P-value for each ancestry-specific
-effect</li>
+<code>pval_anc*</code> — p-values for ancestry-specific effects</li>
 </ul>
 </li>
 <li>
-<strong>Local ancestry effects</strong> (when
-<code>cond_local = TRUE</code>):
+<p><strong>Local ancestry effects (only present when
+<code>cond_local=TRUE</code>)</strong></p>
 <ul>
 <li>
-<code>LAeff_anc*</code>: Effect size (log odds for logistic, linear
-coefficient for linear) of the local ancestry term for each
-ancestry</li>
+<code>LAeff_anc*</code> — local ancestry effect estimates</li>
 <li>
-<code>LAse_anc*</code>: Standard error of the local ancestry effect
-for each ancestry</li>
+<code>LAse_anc*</code> — standard errors of local ancestry
+effects</li>
 <li>
-<code>LApval_anc*</code>: P-value for the local ancestry effect for
-each ancestry</li>
+<code>LApval_anc*</code> — p-values for local ancestry effect</li>
 </ul>
 </li>
 </ol>
@@ -1010,42 +1016,45 @@ each ancestry</li>
 <div class="section level3">
 <h3 id="assumption-checking">Assumption checking<a class="anchor" aria-label="anchor" href="#assumption-checking"></a>
 </h3>
-<p>A practical way to assess TLS-Tractor’s transportability assumption
-is to test for effect heterogeneity between the internal and external
-cohorts. Specifically, - from the internal cohort, obtain effect
-estimates
+<p>A practical way to assess the TLS-Tractor transportability assumption
+is to test for effect-size heterogeneity between the internal and
+external cohorts. Specifically, for each SNP:</p>
+<ol style="list-style-type: decimal">
+<li><p>From the internal cohort, obtain the standard GWAS effect
+estimate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\beta_1</annotation></semantics></math>
-and standard errors
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><msub><mi>E</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">SE_1</annotation></semantics></math>
-for each SNP from a standard GWAS model (fitted using tools such as
-PLINK2) - from the external GWAS summary statistics, obtain effect
-estimates
+and standard error
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><msub><mi>e</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">se_1</annotation></semantics></math>,
+for example using PLINK2 or another GWAS software.</p></li>
+<li><p>From the external standard GWAS summary statistics, obtain the
+corresponding effect size estimate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\beta_2</annotation></semantics></math>
-and standard errors
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><msub><mi>E</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">SE_2</annotation></semantics></math>
-for the same SNPs (these should already be available from the munged
-summary statistics file)</p>
-<p>For each SNP, test whether the effect sizes are consistent across
-cohorts using:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mfrac><mrow><msub><mi>β</mi><mn>1</mn></msub><mo>−</mo><msub><mi>β</mi><mn>2</mn></msub></mrow><msqrt><mrow><mi>S</mi><msubsup><mi>E</mi><mn>1</mn><mn>2</mn></msubsup><mo>+</mo><mi>S</mi><msubsup><mi>E</mi><mn>2</mn><mn>2</mn></msubsup></mrow></msqrt></mfrac></mrow><annotation encoding="application/x-tex">
-z = \frac{\beta_1 - \beta_2}{\sqrt{SE_1^2 + SE_2^2}}
+and standard error
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><msub><mi>e</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">se_2</annotation></semantics></math>.</p></li>
+</ol>
+<p>For each SNP, test whether the effect estimates are consistent across
+cohorts using</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mfrac><mrow><msub><mi>β</mi><mn>1</mn></msub><mo>−</mo><msub><mi>β</mi><mn>2</mn></msub></mrow><msqrt><mrow><mi>s</mi><msubsup><mi>e</mi><mn>1</mn><mn>2</mn></msubsup><mo>+</mo><mi>s</mi><msubsup><mi>e</mi><mn>2</mn><mn>2</mn></msubsup></mrow></msqrt></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+z = \frac{\beta_1 - \beta_2}{\sqrt{se_1^2 + se_2^2}} .
 </annotation></semantics></math></p>
 <p>Under the null hypothesis
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><msub><mi>β</mi><mn>1</mn></msub><mo>=</mo><msub><mi>β</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">H_0: \beta_1 = \beta_2</annotation></semantics></math>,
 the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
 statistic approximately follows a standard normal distribution, assuming
-the two estimates are independent. A two-sided p-value can be computed
-accordingly. This is a Wald test for heterogeneity between two
-independent estimates, and is equivalent to Cochran’s Q test in the
-special case of two studies (i.e.,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo>=</mo><msup><mi>z</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">Q = z^2</annotation></semantics></math>).</p>
-<p>After computing p-values genome-wide, a QQ plot can be used to assess
-calibration of the heterogeneity test. If the transportability
-assumption is satisfied, most SNPs should exhibit no evidence of
-heterogeneity, and the observed p-values should follow the expected null
-distribution (i.e., align with the diagonal). Systematic deviations may
-indicate violations of the assumption.</p>
+the two estimates are independent. A two-sided p-value can then be
+computed from this null distribution. This test is a Wald test for
+heterogeneity between two independent effect estimates and is equivalent
+to Cochran’s
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>
+test in the special case of two studies, where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo>=</mo><msup><mi>z</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">Q = z^2</annotation></semantics></math>.</p>
+<p>After computing heterogeneity p-values genome-wide, a QQ plot can be
+used to assess calibration. If the transportability assumption is
+reasonable, most SNPs should show little evidence of heterogeneity, and
+the observed p-values should approximately follow the expected null
+distribution. Systematic inflation or other deviations from the diagonal
+may indicate violations of the transportability assumption.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Example workflow:</span></span>
 <span><span class="co"># 1) Run standard GWAS in the internal cohort and obtain per-SNP effect size</span></span>
@@ -1126,7 +1135,7 @@ binary data, from tract extraction to the final TLS-Tractor output.</p>
 <span><span class="op">)</span></span>
 <span><span class="va">gds_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">work_dir</span>, <span class="st">"simulate_binary.flare.gds"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># If using RFMix2/Gnomix inputs instead, use:</span></span>
+<span><span class="co"># If using RFMix2/Gnomix inputs, use:</span></span>
 <span><span class="co"># extract_tracts(</span></span>
 <span><span class="co">#   vcf_path = file.path(data_dir, "simulate_binary.phased.vcf"),</span></span>
 <span><span class="co">#   msp_path = file.path(data_dir, "simulate_binary.msp.tsv"),</span></span>

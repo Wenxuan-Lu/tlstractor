@@ -172,9 +172,9 @@ If no covariates are provided, fast mode is automatically disabled.</p></dd>
 <code>&lt;output_prefix&gt;.txt.gz</code>. The output includes:</p><ul><li><p>Variant metadata: <code>CHROM</code>, <code>POS</code>, <code>ID</code>, <code>REF</code>, <code>ALT</code>, <code>main_N</code>
 (sample size in the main/internal study). When <code>method = "logistic"</code>:
 <code>main_N_case</code>, <code>main_N_control</code></p></li>
-<li><p>Frequency and ancestry summaries: <code>AF</code> (overall allele frequency),
-<code>AF_anc*</code> (ancestry-specific allele frequency), <code>LAprop_anc*</code>
-(local-ancestry-specific haplotype proportion). When
+<li><p>Internal-cohort frequency and ancestry summaries: <code>AF</code> (overall
+allele frequency), <code>AF_anc*</code> (ancestry-specific allele frequency),
+<code>LAprop_anc*</code> (local-ancestry-specific haplotype proportion). When
 <code>method = "logistic"</code>: <code>AF_case_anc*</code>, <code>AF_control_anc*</code>,
 <code>LAprop_case_anc*</code>, <code>LAprop_control_anc*</code></p></li>
 <li><p>Analysis metadata: <code>has_sumstats</code> (indicates whether external
