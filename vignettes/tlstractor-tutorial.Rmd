@@ -421,7 +421,7 @@ TLS-Tractor relies on three core assumptions:
 
 3. **Comparable admixture profiles across internal and external cohorts.**
 
-   TLS-Tractor relies on a **transportability** assumption equivalent to fixed-effect GWAS meta-analysis: after appropriate covariate adjustment, the standard GWAS effect that would be estimated in the internal cohort and the standard GWAS effect estimated in the external cohort target the same underlying genetic effect, with observed differences arising from sampling variation rather than true heterogeneity. In practice, this requires comparable admixture profiles across cohorts, including the same ancestral components and similar global ancestry proportions.
+   TLS-Tractor relies on a **transportability assumption** equivalent to fixed-effect GWAS meta-analysis: after appropriate covariate adjustment, the standard GWAS effect that would be estimated in the internal cohort and the standard GWAS effect estimated in the external cohort target the same underlying genetic effect, with observed differences arising from sampling variation rather than true heterogeneity. In practice, this requires comparable admixture profiles across cohorts, including the same ancestral components and similar global ancestry proportions.
 
 In addition, common GWAS meta-analysis considerations still apply. For example, the internal and external datasets should have compatible allele coding, genome build, trait definition, phenotype curation, sample inclusion criteria, and covariate adjustment.
 
@@ -531,14 +531,14 @@ colnames(results)
 
 A practical way to assess the TLS-Tractor transportability assumption is to test for effect-size heterogeneity between the internal and external cohorts. Specifically, for each SNP:
 
-1.  From the internal cohort, obtain the standard GWAS effect estimate $\beta_1$ and standard error $se_1$, for example using PLINK2 or another GWAS software.
+1.  From the internal cohort, obtain the standard GWAS effect estimate $\hat{\beta}_1$ and standard error $se_1$, for example using PLINK2 or another GWAS software.
 
-2.  From the external standard GWAS summary statistics, obtain the corresponding effect size estimate $\beta_2$ and standard error $se_2$.
+2.  From the external standard GWAS summary statistics, obtain the corresponding effect size estimate $\hat{\beta}_2$ and standard error $se_2$.
 
 For each SNP, test whether the effect estimates are consistent across cohorts using
 
 $$
-z = \frac{\beta_1 - \beta_2}{\sqrt{se_1^2 + se_2^2}} .
+z = \frac{\hat{\beta}_1 - \hat{\beta}_2}{\sqrt{se_1^2 + se_2^2}} .
 $$
 
 Under the null hypothesis $H_0: \beta_1 = \beta_2$, the $z$ statistic approximately follows a standard normal distribution, assuming the two estimates are independent. A two-sided p-value can then be computed from this null distribution. This test is a Wald test for heterogeneity between two independent effect estimates and is equivalent to Cochran's $Q$ test in the special case of two studies, where $Q = z^2$.

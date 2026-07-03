@@ -6,9 +6,9 @@ The R package **tlstractor** implements **TLS-Tractor** (**T**ransfer **L**earni
 
 Core computational steps are implemented in C++ for efficient analysis of large datasets. See [Key assumptions](#key-assumptions) before applying the method.
 
-Last updated: July 2, 2026
+Last updated: July 3, 2026
 
-Current version: 0.0.0.9000 (in development)
+Current version: 0.1.0
 
 ## Contents
 
