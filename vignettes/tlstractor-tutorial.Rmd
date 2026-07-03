@@ -531,9 +531,9 @@ colnames(results)
 
 A practical way to assess the TLS-Tractor transportability assumption is to test for effect-size heterogeneity between the internal and external cohorts. Specifically, for each SNP:
 
-1.  From the internal cohort, obtain the standard GWAS effect estimate $\hat{\beta}_1$ and standard error $se_1$, for example using PLINK2 or another GWAS software.
+1.  From the internal cohort, obtain the standard GWAS effect estimate \(\hat{\beta}_{1}\) and standard error $se_1$, for example using PLINK2 or another GWAS software.
 
-2.  From the external standard GWAS summary statistics, obtain the corresponding effect size estimate $\hat{\beta}_2$ and standard error $se_2$.
+2.  From the external standard GWAS summary statistics, obtain the corresponding effect size estimate \(\hat{\beta}_{2}\) and standard error $se_2$.
 
 For each SNP, test whether the effect estimates are consistent across cohorts using
 
