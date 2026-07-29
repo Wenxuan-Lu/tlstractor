@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/Wenxuan-Lu/tlstractor/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/Wenxuan-Lu/tlstractor/blob/v0.1.0/DESCRIPTION)
 
 Lu W (2026). *tlstractor: Transfer Learning of Summary Statistics to
 Tractor*. R package version 0.1.0,
