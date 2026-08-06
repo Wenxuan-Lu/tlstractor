@@ -24,7 +24,7 @@ Current version: 0.1.0
 
 ## Installation
 
-`tlstractor` requires **R 4.5.0 or later**.
+`tlstractor` requires **R 4.5.0 or later**. The installation typically takes a few minutes.
 
 ### For Conda users only
 
@@ -66,7 +66,7 @@ If installation fails, see [Installation troubleshooting](#installation-troubles
 
 This package implements a three-step workflow that is fully compatible with [Tractor scripts](https://github.com/Atkinson-Lab/Tractor) but substantially faster. The three steps are: extracts local ancestry tracts, harmonizes external standard GWAS summary statistics, and runs TLS-Tractor.
 
-The example below is a minimal runnable template. File names and column names are illustrative. Please adapt them to your own data. For a complete pipeline walkthrough, see the [TLS-Tractor tutorial](https://wenxuan-lu.github.io/tlstractor/).
+The example below is a minimal runnable template. File names and column names are illustrative. Please adapt them to your own data. For a complete pipeline walkthrough, see the [TLS-Tractor tutorial](https://wenxuan-lu.github.io/tlstractor/), which illustrates the workflow on simulated datasets and runs in a few seconds.
 
 ### Required inputs
 
