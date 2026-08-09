@@ -434,7 +434,7 @@ Then retry installation.
 
 If you use `tlstractor`, please cite the TLS-Tractor manuscript:
 
-> Lu, W., Zhao, R., Chatterjee, N. TLS-Tractor: A transfer learning
+> Lu, W., Zhao, R. & Chatterjee, N. TLS-Tractor: A transfer learning
 > framework for incorporating summary-statistics into local
 > ancestry-aware GWAS in admixed populations. *medRxiv* (2026).
 > [Link](https://doi.org/10.64898/2026.08.04.26359626)
