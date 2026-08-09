@@ -1,0 +1,12 @@
+bibentry(
+  bibtype = "Article",
+  title = "TLS-Tractor: A transfer learning framework for incorporating summary-statistics into local ancestry-aware GWAS in admixed populations",
+  author = c(
+    person("Wenxuan", "Lu"),
+    person("Ruzhang", "Zhao"),
+    person("Nilanjan", "Chatterjee")
+  ),
+  journal = "medRxiv",
+  year = "2026",
+  doi = "10.64898/2026.08.04.26359626"
+)

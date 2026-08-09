@@ -307,19 +307,15 @@ Then retry installation.
 
 ## Citation
 
-The TLS-Tractor manuscript is in preparation. A formal citation will be added after the preprint or paper is available.
+If you use `tlstractor`, please cite the TLS-Tractor manuscript:
 
-<!-- If you use `tlstractor`, please cite the TLS-Tractor manuscript:
-
-- [TLS-Tractor manuscript/preprint](LINK) -->
+> Lu, W., Zhao, R., Chatterjee, N. TLS-Tractor: A transfer learning framework for incorporating summary-statistics into local ancestry-aware GWAS in admixed populations. *medRxiv* (2026). [Link](https://doi.org/10.64898/2026.08.04.26359626)
 
 TLS-Tractor extends the Tractor framework, so please also cite the original Tractor paper:
 
 > Atkinson, E.G., Maihofer, A.X., Kanai, M. et al. Tractor uses local ancestry to enable the inclusion of admixed individuals in GWAS and to boost power. *Nature Genetics* **53**, 195–204 (2021). [Link](https://www.nature.com/articles/s41588-020-00766-y)
 
 [Back to Contents](#contents)
-
-<!-- TODO: add usethis::use_citation() later to include inst/CITATION -->
 
 ## Bug reports and questions
 
