@@ -8,16 +8,17 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/Wenxuan-Lu/tlstractor/blob/v0.1.0/DESCRIPTION)
+[`inst/CITATION`](https://github.com/Wenxuan-Lu/tlstractor/blob/main/inst/CITATION)
 
-Lu W (2026). *tlstractor: Transfer Learning of Summary Statistics to
-Tractor*. R package version 0.1.0,
-<https://github.com/Wenxuan-Lu/tlstractor>.
+Lu W, Zhao R, Chatterjee N (2026). “TLS-Tractor: A transfer learning
+framework for incorporating summary-statistics into local ancestry-aware
+GWAS in admixed populations.” *medRxiv*.
+[doi:10.64898/2026.08.04.26359626](https://doi.org/10.64898/2026.08.04.26359626).
 
-    @Manual{,
-      title = {tlstractor: Transfer Learning of Summary Statistics to Tractor},
-      author = {Wenxuan Lu},
+    @Article{,
+      title = {TLS-Tractor: A transfer learning framework for incorporating summary-statistics into local ancestry-aware GWAS in admixed populations},
+      author = {Wenxuan Lu and Ruzhang Zhao and Nilanjan Chatterjee},
+      journal = {medRxiv},
       year = {2026},
-      note = {R package version 0.1.0},
-      url = {https://github.com/Wenxuan-Lu/tlstractor},
+      doi = {10.64898/2026.08.04.26359626},
     }

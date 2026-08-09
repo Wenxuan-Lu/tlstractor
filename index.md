@@ -41,7 +41,8 @@ Current version: 0.1.0
 
 ## Installation
 
-`tlstractor` requires **R 4.5.0 or later**.
+`tlstractor` requires **R 4.5.0 or later**. The installation typically
+takes a few minutes.
 
 ### For Conda users only
 
@@ -95,7 +96,8 @@ TLS-Tractor.
 The example below is a minimal runnable template. File names and column
 names are illustrative. Please adapt them to your own data. For a
 complete pipeline walkthrough, see the [TLS-Tractor
-tutorial](https://wenxuan-lu.github.io/tlstractor/).
+tutorial](https://wenxuan-lu.github.io/tlstractor/), which illustrates
+the workflow on simulated datasets and runs in a few seconds.
 
 ### Required inputs
 
@@ -430,8 +432,12 @@ Then retry installation.
 
 ## Citation
 
-The TLS-Tractor manuscript is in preparation. A formal citation will be
-added after the preprint or paper is available.
+If you use `tlstractor`, please cite the TLS-Tractor manuscript:
+
+> Lu, W., Zhao, R., Chatterjee, N. TLS-Tractor: A transfer learning
+> framework for incorporating summary-statistics into local
+> ancestry-aware GWAS in admixed populations. *medRxiv* (2026).
+> [Link](https://doi.org/10.64898/2026.08.04.26359626)
 
 TLS-Tractor extends the Tractor framework, so please also cite the
 original Tractor paper:
